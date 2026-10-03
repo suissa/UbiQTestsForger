@@ -1,5 +1,6 @@
 # UbiQTestsForger
 
+```
 UbiQTestForger
 │
 ├── Test Contract
@@ -51,6 +52,7 @@ UbiQTestForger
     ├── API
     ├── WebSocket
     └── CI Reporter
+```
 
 ## UbiQTest Interface
 
