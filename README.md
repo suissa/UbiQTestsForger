@@ -6,7 +6,7 @@ The executable fixture `examples/2FA-passwordless` models passwordless authentic
 
 Canonical skills: Intent, Trajectory, Behavioral, Acceptance, Unit, Component, Integration, Contract, System, E2E, Smoke, Regression, Performance, Security, Accessibility, Compatibility and Reliability.
 
-Every skill expands across every declared action. The generated matrix is **17 skills x 15 actions = 255 test cases**.
+Every skill expands across every declared action. The generated matrix is **17 skills x 16 actions = 272 test cases**.
 
 The generated test can only use fixture values through `$ref: values.<name>` and only nominal semantic types declared in the fixture schema. The engine rejects undeclared values/types/references.
 
