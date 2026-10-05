@@ -1,0 +1,9 @@
+{
+  "id": "2FA-passwordless.intent",
+  "kind": "intent",
+  "entry": "UserLoginIntent",
+  "channels": [
+    "web",
+    "whatsapp"
+  ]
+}
