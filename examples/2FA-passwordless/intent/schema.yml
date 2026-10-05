@@ -1,0 +1,11 @@
+{
+  "required": [
+    "id",
+    "intent",
+    "actors",
+    "actions",
+    "channels",
+    "values",
+    "nominal_types"
+  ]
+}
