@@ -1,0 +1,23 @@
+{
+  "id": "2FA-passwordless.skills",
+  "kind": "skills",
+  "canonical_types": [
+    "intent",
+    "trajectory",
+    "behavioral",
+    "acceptance",
+    "unit",
+    "component",
+    "integration",
+    "contract",
+    "system",
+    "e2e",
+    "smoke",
+    "regression",
+    "performance",
+    "security",
+    "accessibility",
+    "compatibility",
+    "reliability"
+  ]
+}
