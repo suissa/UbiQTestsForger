@@ -1,0 +1,386 @@
+{
+  "id": "2FA-passwordless",
+  "intent": "UserLoginIntent",
+  "actors": {
+    "gateway": {
+      "id": "GatewayPlane",
+      "role": "receives canonical requests and orchestrates"
+    },
+    "user_gateway": {
+      "id": "UserGatewayAgent",
+      "role": "adapts authentication result to user channels"
+    },
+    "login": {
+      "id": "UserLoginIntent",
+      "role": "executes passwordless login behavior"
+    },
+    "evolution": {
+      "id": "EvolutionGoAdapter",
+      "role": "WhatsApp existence and message transport"
+    },
+    "webauthn": {
+      "id": "WebAuthnAdapter",
+      "role": "passkey authentication"
+    },
+    "chatbot": {
+      "id": "ChatbotService",
+      "role": "canonical inbound WhatsApp chatbot route"
+    }
+  },
+  "channels": [
+    "web",
+    "whatsapp"
+  ],
+  "values": {
+    "whatsapp_number": "+5515999999999",
+    "whatsapp_number_formatted": "5515999999999",
+    "evolution_exists": true,
+    "magic_link": "https://auth.example.test/m/ML-2FA-001",
+    "passkey_credential": "passkey-credential-2fa-001",
+    "session_id": "sess_2fa_001",
+    "login_result": "authenticated",
+    "web_message": "Login realizado com sucesso usando a passkey vinculada a este WhatsApp.",
+    "whatsapp_message": "Você acabou de fazer login com a passkey deste WhatsApp.",
+    "inbound_message": "Olá",
+    "no_active_session": false
+  },
+  "nominal_types": [
+    "WhatsAppNumber",
+    "ChatNumber",
+    "PasskeyCredential",
+    "SessionId"
+  ],
+  "actions": [
+    {
+      "id": "gateway.receive_whatsapp_number",
+      "actor": "GatewayPlane",
+      "input": {
+        "whatsapp_number": {
+          "$ref": "values.whatsapp_number"
+        }
+      },
+      "output": {
+        "received": {
+          "$ref": "values.whatsapp_number"
+        }
+      },
+      "semantic_types": [
+        "WhatsAppNumber"
+      ]
+    },
+    {
+      "id": "gateway.validate_chat_number",
+      "actor": "GatewayPlane",
+      "input": {
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        }
+      },
+      "output": {
+        "valid": true,
+        "normalized": {
+          "$ref": "values.whatsapp_number_formatted"
+        }
+      },
+      "semantic_types": [
+        "ChatNumber"
+      ],
+      "depends_on": [
+        "gateway.receive_whatsapp_number"
+      ]
+    },
+    {
+      "id": "gateway.check_whatsapp_exists",
+      "actor": "GatewayPlane",
+      "input": {
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        }
+      },
+      "output": {
+        "exists": {
+          "$ref": "values.evolution_exists"
+        }
+      },
+      "semantic_types": [
+        "ChatNumber"
+      ],
+      "depends_on": [
+        "gateway.validate_chat_number"
+      ]
+    },
+    {
+      "id": "login.create_magic_link",
+      "actor": "UserLoginIntent",
+      "input": {
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        }
+      },
+      "output": {
+        "magic_link": {
+          "$ref": "values.magic_link"
+        }
+      },
+      "semantic_types": [
+        "WhatsAppNumber"
+      ],
+      "depends_on": [
+        "gateway.check_whatsapp_exists"
+      ]
+    },
+    {
+      "id": "login.send_magic_link",
+      "actor": "UserLoginIntent",
+      "input": {
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        },
+        "magic_link": {
+          "$ref": "values.magic_link"
+        }
+      },
+      "output": {
+        "sent": true
+      },
+      "semantic_types": [
+        "WhatsAppNumber"
+      ],
+      "depends_on": [
+        "login.create_magic_link"
+      ]
+    },
+    {
+      "id": "login.receive_passkey",
+      "actor": "UserLoginIntent",
+      "input": {
+        "passkey": {
+          "$ref": "values.passkey_credential"
+        }
+      },
+      "output": {
+        "received": true
+      },
+      "semantic_types": [
+        "PasskeyCredential"
+      ],
+      "depends_on": [
+        "login.send_magic_link"
+      ]
+    },
+    {
+      "id": "login.validate_passkey",
+      "actor": "UserLoginIntent",
+      "input": {
+        "passkey": {
+          "$ref": "values.passkey_credential"
+        },
+        "session_id": {
+          "$ref": "values.session_id"
+        }
+      },
+      "output": {
+        "authenticated": {
+          "$ref": "values.login_result"
+        }
+      },
+      "semantic_types": [
+        "PasskeyCredential",
+        "SessionId"
+      ],
+      "depends_on": [
+        "login.receive_passkey"
+      ]
+    },
+    {
+      "id": "gateway.send_result_user_gateway",
+      "actor": "GatewayPlane",
+      "input": {
+        "result": {
+          "$ref": "values.login_result"
+        }
+      },
+      "output": {
+        "delivered": true
+      },
+      "semantic_types": [],
+      "depends_on": [
+        "login.validate_passkey"
+      ]
+    },
+    {
+      "id": "user_gateway.adapt_web_result",
+      "actor": "UserGatewayAgent",
+      "input": {
+        "result": {
+          "$ref": "values.login_result"
+        },
+        "message": {
+          "$ref": "values.web_message"
+        }
+      },
+      "output": {
+        "channel": "web",
+        "message": {
+          "$ref": "values.web_message"
+        }
+      },
+      "semantic_types": [],
+      "depends_on": [
+        "gateway.send_result_user_gateway"
+      ]
+    },
+    {
+      "id": "user_gateway.adapt_whatsapp_result",
+      "actor": "UserGatewayAgent",
+      "input": {
+        "result": {
+          "$ref": "values.login_result"
+        },
+        "message": {
+          "$ref": "values.whatsapp_message"
+        }
+      },
+      "output": {
+        "channel": "whatsapp",
+        "message": {
+          "$ref": "values.whatsapp_message"
+        }
+      },
+      "semantic_types": [],
+      "depends_on": [
+        "gateway.send_result_user_gateway"
+      ]
+    },
+    {
+      "id": "chatbot.receive_message",
+      "actor": "ChatbotService",
+      "input": {
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        },
+        "message": {
+          "$ref": "values.inbound_message"
+        }
+      },
+      "output": {
+        "received": true
+      },
+      "semantic_types": [
+        "ChatNumber"
+      ],
+      "depends_on": []
+    },
+    {
+      "id": "chatbot.check_active_session",
+      "actor": "ChatbotService",
+      "input": {
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        }
+      },
+      "output": {
+        "active": {
+          "$ref": "values.no_active_session"
+        }
+      },
+      "semantic_types": [
+        "ChatNumber"
+      ],
+      "depends_on": [
+        "chatbot.receive_message"
+      ]
+    },
+    {
+      "id": "chatbot.create_magic_link",
+      "actor": "ChatbotService",
+      "input": {
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        }
+      },
+      "output": {
+        "magic_link": {
+          "$ref": "values.magic_link"
+        }
+      },
+      "semantic_types": [
+        "WhatsAppNumber"
+      ],
+      "depends_on": [
+        "chatbot.check_active_session"
+      ]
+    },
+    {
+      "id": "chatbot.send_magic_link",
+      "actor": "ChatbotService",
+      "input": {
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        },
+        "magic_link": {
+          "$ref": "values.magic_link"
+        }
+      },
+      "output": {
+        "sent": true
+      },
+      "semantic_types": [
+        "WhatsAppNumber"
+      ],
+      "depends_on": [
+        "chatbot.create_magic_link"
+      ]
+    },
+    {
+      "id": "web.receive_passkey_route",
+      "actor": "GatewayPlane",
+      "input": {
+        "passkey": {
+          "$ref": "values.passkey_credential"
+        },
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        }
+      },
+      "output": {
+        "validated": {
+          "$ref": "values.login_result"
+        }
+      },
+      "semantic_types": [
+        "PasskeyCredential",
+        "WhatsAppNumber"
+      ],
+      "depends_on": [
+        "login.validate_passkey"
+      ]
+    },
+    {
+      "id": "gateway.return_authenticated_result",
+      "actor": "GatewayPlane",
+      "input": {
+        "session_id": {
+          "$ref": "values.session_id"
+        },
+        "result": {
+          "$ref": "values.login_result"
+        }
+      },
+      "output": {
+        "web": {
+          "$ref": "values.web_message"
+        },
+        "whatsapp": {
+          "$ref": "values.whatsapp_message"
+        }
+      },
+      "semantic_types": [
+        "SessionId"
+      ],
+      "depends_on": [
+        "web.receive_passkey_route"
+      ]
+    }
+  ]
+}
