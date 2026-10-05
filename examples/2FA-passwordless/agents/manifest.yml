@@ -1,0 +1,12 @@
+{
+  "id": "2FA-passwordless.agents",
+  "kind": "agents",
+  "actors": [
+    "GatewayPlane",
+    "UserGatewayAgent",
+    "UserLoginIntent",
+    "EvolutionGoAdapter",
+    "WebAuthnAdapter",
+    "ChatbotService"
+  ]
+}
