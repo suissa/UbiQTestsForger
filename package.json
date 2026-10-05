@@ -1,0 +1,13 @@
+{
+  "name": "@suissa/ubiq-tests-forger",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "engines": { "node": ">=24 <25" },
+  "scripts": {
+    "generate": "node --experimental-strip-types src/cli.ts generate examples/2FA-passwordless",
+    "test": "node --experimental-strip-types src/cli.ts run examples/2FA-passwordless",
+    "check": "node --experimental-strip-types src/cli.ts check examples/2FA-passwordless"
+  },
+  "exports": { ".": "./src/index.ts", "./nominal": "./src/nominal.ts" }
+}
