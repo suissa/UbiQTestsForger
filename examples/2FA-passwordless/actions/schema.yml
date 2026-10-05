@@ -1,0 +1,9 @@
+{
+  "required": [
+    "actions[].id",
+    "actions[].actor",
+    "actions[].input",
+    "actions[].output",
+    "actions[].semantic_types"
+  ]
+}
