@@ -1,0 +1,4 @@
+{
+  "input_contract": "examples/2FA-passwordless/**/*.yml",
+  "execution": "skill(action)"
+}
