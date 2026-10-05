@@ -1,0 +1,6 @@
+{
+  "assertions": [
+    "every action actor is declared",
+    "agent boundary is explicit"
+  ]
+}
