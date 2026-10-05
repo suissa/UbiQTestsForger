@@ -1,0 +1,10 @@
+{
+  "suite": "canonical-intent",
+  "types": [
+    "intent",
+    "trajectory",
+    "behavioral",
+    "acceptance",
+    "e2e"
+  ]
+}
