@@ -1,0 +1,6 @@
+{
+  "assertions": [
+    "action inputs use $ref to declared values",
+    "semantic_types use declared nominal types"
+  ]
+}
