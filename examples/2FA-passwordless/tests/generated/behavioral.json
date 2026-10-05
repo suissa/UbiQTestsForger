@@ -1,6 +1,7 @@
 {
   "skill": "ubiq.skill.behavioral",
   "purpose": "behavioral skill execution",
+  "when": "canonical pipeline execution",
   "cases": [
     {
       "id": "behavioral.gateway.receive_whatsapp_number",
@@ -17,7 +18,9 @@
       "expected": {
         "action_reached": "gateway.receive_whatsapp_number",
         "actor": "GatewayPlane",
-        "output_keys": [],
+        "output_keys": [
+          "received"
+        ],
         "type": "behavioral"
       },
       "allowed_values": [
@@ -52,7 +55,10 @@
       "expected": {
         "action_reached": "gateway.validate_chat_number",
         "actor": "GatewayPlane",
-        "output_keys": [],
+        "output_keys": [
+          "valid",
+          "normalized"
+        ],
         "type": "behavioral"
       },
       "allowed_values": [
@@ -87,7 +93,9 @@
       "expected": {
         "action_reached": "gateway.check_whatsapp_exists",
         "actor": "GatewayPlane",
-        "output_keys": [],
+        "output_keys": [
+          "exists"
+        ],
         "type": "behavioral"
       },
       "allowed_values": [
@@ -122,7 +130,9 @@
       "expected": {
         "action_reached": "login.create_magic_link",
         "actor": "UserLoginIntent",
-        "output_keys": [],
+        "output_keys": [
+          "magic_link"
+        ],
         "type": "behavioral"
       },
       "allowed_values": [
@@ -160,7 +170,9 @@
       "expected": {
         "action_reached": "login.send_magic_link",
         "actor": "UserLoginIntent",
-        "output_keys": [],
+        "output_keys": [
+          "sent"
+        ],
         "type": "behavioral"
       },
       "allowed_values": [
@@ -195,7 +207,9 @@
       "expected": {
         "action_reached": "login.receive_passkey",
         "actor": "UserLoginIntent",
-        "output_keys": [],
+        "output_keys": [
+          "received"
+        ],
         "type": "behavioral"
       },
       "allowed_values": [
@@ -233,7 +247,9 @@
       "expected": {
         "action_reached": "login.validate_passkey",
         "actor": "UserLoginIntent",
-        "output_keys": [],
+        "output_keys": [
+          "authenticated"
+        ],
         "type": "behavioral"
       },
       "allowed_values": [
@@ -268,7 +284,9 @@
       "expected": {
         "action_reached": "gateway.send_result_user_gateway",
         "actor": "GatewayPlane",
-        "output_keys": [],
+        "output_keys": [
+          "delivered"
+        ],
         "type": "behavioral"
       },
       "allowed_values": [
@@ -306,7 +324,10 @@
       "expected": {
         "action_reached": "user_gateway.adapt_web_result",
         "actor": "UserGatewayAgent",
-        "output_keys": [],
+        "output_keys": [
+          "channel",
+          "message"
+        ],
         "type": "behavioral"
       },
       "allowed_values": [
@@ -344,7 +365,10 @@
       "expected": {
         "action_reached": "user_gateway.adapt_whatsapp_result",
         "actor": "UserGatewayAgent",
-        "output_keys": [],
+        "output_keys": [
+          "channel",
+          "message"
+        ],
         "type": "behavioral"
       },
       "allowed_values": [
@@ -382,7 +406,9 @@
       "expected": {
         "action_reached": "chatbot.receive_message",
         "actor": "ChatbotService",
-        "output_keys": [],
+        "output_keys": [
+          "received"
+        ],
         "type": "behavioral"
       },
       "allowed_values": [
@@ -417,7 +443,9 @@
       "expected": {
         "action_reached": "chatbot.check_active_session",
         "actor": "ChatbotService",
-        "output_keys": [],
+        "output_keys": [
+          "active"
+        ],
         "type": "behavioral"
       },
       "allowed_values": [
@@ -452,7 +480,9 @@
       "expected": {
         "action_reached": "chatbot.create_magic_link",
         "actor": "ChatbotService",
-        "output_keys": [],
+        "output_keys": [
+          "magic_link"
+        ],
         "type": "behavioral"
       },
       "allowed_values": [
@@ -490,7 +520,9 @@
       "expected": {
         "action_reached": "chatbot.send_magic_link",
         "actor": "ChatbotService",
-        "output_keys": [],
+        "output_keys": [
+          "sent"
+        ],
         "type": "behavioral"
       },
       "allowed_values": [
@@ -528,7 +560,9 @@
       "expected": {
         "action_reached": "web.receive_passkey_route",
         "actor": "GatewayPlane",
-        "output_keys": [],
+        "output_keys": [
+          "validated"
+        ],
         "type": "behavioral"
       },
       "allowed_values": [
@@ -566,7 +600,10 @@
       "expected": {
         "action_reached": "gateway.return_authenticated_result",
         "actor": "GatewayPlane",
-        "output_keys": [],
+        "output_keys": [
+          "web",
+          "whatsapp"
+        ],
         "type": "behavioral"
       },
       "allowed_values": [
@@ -599,15 +636,20 @@
         "action exists",
         "actor declared",
         "input keys declared",
-        "output contract",
-        "fixture-only values/types"
+        "expected output keys match action contract",
+        "fixture values/types declared"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "gateway.receive_whatsapp_number",
-        "semantic_types": [
-          "WhatsAppNumber"
-        ]
+        "expected": {
+          "action_reached": "gateway.receive_whatsapp_number",
+          "actor": "GatewayPlane",
+          "output_keys": [
+            "received"
+          ],
+          "type": "behavioral"
+        }
       },
       "metrics": {
         "assertions": 5,
@@ -627,15 +669,21 @@
         "action exists",
         "actor declared",
         "input keys declared",
-        "output contract",
-        "fixture-only values/types"
+        "expected output keys match action contract",
+        "fixture values/types declared"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "gateway.validate_chat_number",
-        "semantic_types": [
-          "ChatNumber"
-        ]
+        "expected": {
+          "action_reached": "gateway.validate_chat_number",
+          "actor": "GatewayPlane",
+          "output_keys": [
+            "valid",
+            "normalized"
+          ],
+          "type": "behavioral"
+        }
       },
       "metrics": {
         "assertions": 5,
@@ -655,15 +703,20 @@
         "action exists",
         "actor declared",
         "input keys declared",
-        "output contract",
-        "fixture-only values/types"
+        "expected output keys match action contract",
+        "fixture values/types declared"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "gateway.check_whatsapp_exists",
-        "semantic_types": [
-          "ChatNumber"
-        ]
+        "expected": {
+          "action_reached": "gateway.check_whatsapp_exists",
+          "actor": "GatewayPlane",
+          "output_keys": [
+            "exists"
+          ],
+          "type": "behavioral"
+        }
       },
       "metrics": {
         "assertions": 5,
@@ -683,15 +736,20 @@
         "action exists",
         "actor declared",
         "input keys declared",
-        "output contract",
-        "fixture-only values/types"
+        "expected output keys match action contract",
+        "fixture values/types declared"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "login.create_magic_link",
-        "semantic_types": [
-          "WhatsAppNumber"
-        ]
+        "expected": {
+          "action_reached": "login.create_magic_link",
+          "actor": "UserLoginIntent",
+          "output_keys": [
+            "magic_link"
+          ],
+          "type": "behavioral"
+        }
       },
       "metrics": {
         "assertions": 5,
@@ -711,15 +769,20 @@
         "action exists",
         "actor declared",
         "input keys declared",
-        "output contract",
-        "fixture-only values/types"
+        "expected output keys match action contract",
+        "fixture values/types declared"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "login.send_magic_link",
-        "semantic_types": [
-          "WhatsAppNumber"
-        ]
+        "expected": {
+          "action_reached": "login.send_magic_link",
+          "actor": "UserLoginIntent",
+          "output_keys": [
+            "sent"
+          ],
+          "type": "behavioral"
+        }
       },
       "metrics": {
         "assertions": 5,
@@ -739,15 +802,20 @@
         "action exists",
         "actor declared",
         "input keys declared",
-        "output contract",
-        "fixture-only values/types"
+        "expected output keys match action contract",
+        "fixture values/types declared"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "login.receive_passkey",
-        "semantic_types": [
-          "PasskeyCredential"
-        ]
+        "expected": {
+          "action_reached": "login.receive_passkey",
+          "actor": "UserLoginIntent",
+          "output_keys": [
+            "received"
+          ],
+          "type": "behavioral"
+        }
       },
       "metrics": {
         "assertions": 5,
@@ -767,16 +835,20 @@
         "action exists",
         "actor declared",
         "input keys declared",
-        "output contract",
-        "fixture-only values/types"
+        "expected output keys match action contract",
+        "fixture values/types declared"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "login.validate_passkey",
-        "semantic_types": [
-          "PasskeyCredential",
-          "SessionId"
-        ]
+        "expected": {
+          "action_reached": "login.validate_passkey",
+          "actor": "UserLoginIntent",
+          "output_keys": [
+            "authenticated"
+          ],
+          "type": "behavioral"
+        }
       },
       "metrics": {
         "assertions": 5,
@@ -796,13 +868,20 @@
         "action exists",
         "actor declared",
         "input keys declared",
-        "output contract",
-        "fixture-only values/types"
+        "expected output keys match action contract",
+        "fixture values/types declared"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "gateway.send_result_user_gateway",
-        "semantic_types": []
+        "expected": {
+          "action_reached": "gateway.send_result_user_gateway",
+          "actor": "GatewayPlane",
+          "output_keys": [
+            "delivered"
+          ],
+          "type": "behavioral"
+        }
       },
       "metrics": {
         "assertions": 5,
@@ -822,13 +901,21 @@
         "action exists",
         "actor declared",
         "input keys declared",
-        "output contract",
-        "fixture-only values/types"
+        "expected output keys match action contract",
+        "fixture values/types declared"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "user_gateway.adapt_web_result",
-        "semantic_types": []
+        "expected": {
+          "action_reached": "user_gateway.adapt_web_result",
+          "actor": "UserGatewayAgent",
+          "output_keys": [
+            "channel",
+            "message"
+          ],
+          "type": "behavioral"
+        }
       },
       "metrics": {
         "assertions": 5,
@@ -848,13 +935,21 @@
         "action exists",
         "actor declared",
         "input keys declared",
-        "output contract",
-        "fixture-only values/types"
+        "expected output keys match action contract",
+        "fixture values/types declared"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "user_gateway.adapt_whatsapp_result",
-        "semantic_types": []
+        "expected": {
+          "action_reached": "user_gateway.adapt_whatsapp_result",
+          "actor": "UserGatewayAgent",
+          "output_keys": [
+            "channel",
+            "message"
+          ],
+          "type": "behavioral"
+        }
       },
       "metrics": {
         "assertions": 5,
@@ -874,15 +969,20 @@
         "action exists",
         "actor declared",
         "input keys declared",
-        "output contract",
-        "fixture-only values/types"
+        "expected output keys match action contract",
+        "fixture values/types declared"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "chatbot.receive_message",
-        "semantic_types": [
-          "ChatNumber"
-        ]
+        "expected": {
+          "action_reached": "chatbot.receive_message",
+          "actor": "ChatbotService",
+          "output_keys": [
+            "received"
+          ],
+          "type": "behavioral"
+        }
       },
       "metrics": {
         "assertions": 5,
@@ -902,15 +1002,20 @@
         "action exists",
         "actor declared",
         "input keys declared",
-        "output contract",
-        "fixture-only values/types"
+        "expected output keys match action contract",
+        "fixture values/types declared"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "chatbot.check_active_session",
-        "semantic_types": [
-          "ChatNumber"
-        ]
+        "expected": {
+          "action_reached": "chatbot.check_active_session",
+          "actor": "ChatbotService",
+          "output_keys": [
+            "active"
+          ],
+          "type": "behavioral"
+        }
       },
       "metrics": {
         "assertions": 5,
@@ -930,15 +1035,20 @@
         "action exists",
         "actor declared",
         "input keys declared",
-        "output contract",
-        "fixture-only values/types"
+        "expected output keys match action contract",
+        "fixture values/types declared"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "chatbot.create_magic_link",
-        "semantic_types": [
-          "WhatsAppNumber"
-        ]
+        "expected": {
+          "action_reached": "chatbot.create_magic_link",
+          "actor": "ChatbotService",
+          "output_keys": [
+            "magic_link"
+          ],
+          "type": "behavioral"
+        }
       },
       "metrics": {
         "assertions": 5,
@@ -958,15 +1068,20 @@
         "action exists",
         "actor declared",
         "input keys declared",
-        "output contract",
-        "fixture-only values/types"
+        "expected output keys match action contract",
+        "fixture values/types declared"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "chatbot.send_magic_link",
-        "semantic_types": [
-          "WhatsAppNumber"
-        ]
+        "expected": {
+          "action_reached": "chatbot.send_magic_link",
+          "actor": "ChatbotService",
+          "output_keys": [
+            "sent"
+          ],
+          "type": "behavioral"
+        }
       },
       "metrics": {
         "assertions": 5,
@@ -986,16 +1101,20 @@
         "action exists",
         "actor declared",
         "input keys declared",
-        "output contract",
-        "fixture-only values/types"
+        "expected output keys match action contract",
+        "fixture values/types declared"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "web.receive_passkey_route",
-        "semantic_types": [
-          "PasskeyCredential",
-          "WhatsAppNumber"
-        ]
+        "expected": {
+          "action_reached": "web.receive_passkey_route",
+          "actor": "GatewayPlane",
+          "output_keys": [
+            "validated"
+          ],
+          "type": "behavioral"
+        }
       },
       "metrics": {
         "assertions": 5,
@@ -1015,15 +1134,21 @@
         "action exists",
         "actor declared",
         "input keys declared",
-        "output contract",
-        "fixture-only values/types"
+        "expected output keys match action contract",
+        "fixture values/types declared"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "gateway.return_authenticated_result",
-        "semantic_types": [
-          "SessionId"
-        ]
+        "expected": {
+          "action_reached": "gateway.return_authenticated_result",
+          "actor": "GatewayPlane",
+          "output_keys": [
+            "web",
+            "whatsapp"
+          ],
+          "type": "behavioral"
+        }
       },
       "metrics": {
         "assertions": 5,
