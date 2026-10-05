@@ -1,0 +1,680 @@
+{
+  "skill": "ubiq.skill.intent",
+  "purpose": "intent skill execution",
+  "cases": [
+    {
+      "id": "intent.gateway.receive_whatsapp_number",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "action_id": "gateway.receive_whatsapp_number",
+      "action_index": 0,
+      "target_actor": "GatewayPlane",
+      "input": "fixture-action-input",
+      "expected": {
+        "action_reached": "gateway.receive_whatsapp_number",
+        "actor": "GatewayPlane",
+        "type": "intent"
+      },
+      "allowed_values": "fixture.values.*",
+      "allowed_types": "fixture.nominal_types"
+    },
+    {
+      "id": "intent.gateway.validate_chat_number",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "action_id": "gateway.validate_chat_number",
+      "action_index": 1,
+      "target_actor": "GatewayPlane",
+      "input": "fixture-action-input",
+      "expected": {
+        "action_reached": "gateway.validate_chat_number",
+        "actor": "GatewayPlane",
+        "type": "intent"
+      },
+      "allowed_values": "fixture.values.*",
+      "allowed_types": "fixture.nominal_types"
+    },
+    {
+      "id": "intent.gateway.check_whatsapp_exists",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "action_id": "gateway.check_whatsapp_exists",
+      "action_index": 2,
+      "target_actor": "GatewayPlane",
+      "input": "fixture-action-input",
+      "expected": {
+        "action_reached": "gateway.check_whatsapp_exists",
+        "actor": "GatewayPlane",
+        "type": "intent"
+      },
+      "allowed_values": "fixture.values.*",
+      "allowed_types": "fixture.nominal_types"
+    },
+    {
+      "id": "intent.login.create_magic_link",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "action_id": "login.create_magic_link",
+      "action_index": 3,
+      "target_actor": "UserLoginIntent",
+      "input": "fixture-action-input",
+      "expected": {
+        "action_reached": "login.create_magic_link",
+        "actor": "UserLoginIntent",
+        "type": "intent"
+      },
+      "allowed_values": "fixture.values.*",
+      "allowed_types": "fixture.nominal_types"
+    },
+    {
+      "id": "intent.login.send_magic_link",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "action_id": "login.send_magic_link",
+      "action_index": 4,
+      "target_actor": "UserLoginIntent",
+      "input": "fixture-action-input",
+      "expected": {
+        "action_reached": "login.send_magic_link",
+        "actor": "UserLoginIntent",
+        "type": "intent"
+      },
+      "allowed_values": "fixture.values.*",
+      "allowed_types": "fixture.nominal_types"
+    },
+    {
+      "id": "intent.login.receive_passkey",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "action_id": "login.receive_passkey",
+      "action_index": 5,
+      "target_actor": "UserLoginIntent",
+      "input": "fixture-action-input",
+      "expected": {
+        "action_reached": "login.receive_passkey",
+        "actor": "UserLoginIntent",
+        "type": "intent"
+      },
+      "allowed_values": "fixture.values.*",
+      "allowed_types": "fixture.nominal_types"
+    },
+    {
+      "id": "intent.login.validate_passkey",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "action_id": "login.validate_passkey",
+      "action_index": 6,
+      "target_actor": "UserLoginIntent",
+      "input": "fixture-action-input",
+      "expected": {
+        "action_reached": "login.validate_passkey",
+        "actor": "UserLoginIntent",
+        "type": "intent"
+      },
+      "allowed_values": "fixture.values.*",
+      "allowed_types": "fixture.nominal_types"
+    },
+    {
+      "id": "intent.gateway.send_result_user_gateway",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "action_id": "gateway.send_result_user_gateway",
+      "action_index": 7,
+      "target_actor": "GatewayPlane",
+      "input": "fixture-action-input",
+      "expected": {
+        "action_reached": "gateway.send_result_user_gateway",
+        "actor": "GatewayPlane",
+        "type": "intent"
+      },
+      "allowed_values": "fixture.values.*",
+      "allowed_types": "fixture.nominal_types"
+    },
+    {
+      "id": "intent.user_gateway.adapt_web_result",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "action_id": "user_gateway.adapt_web_result",
+      "action_index": 8,
+      "target_actor": "UserGatewayAgent",
+      "input": "fixture-action-input",
+      "expected": {
+        "action_reached": "user_gateway.adapt_web_result",
+        "actor": "UserGatewayAgent",
+        "type": "intent"
+      },
+      "allowed_values": "fixture.values.*",
+      "allowed_types": "fixture.nominal_types"
+    },
+    {
+      "id": "intent.user_gateway.adapt_whatsapp_result",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "action_id": "user_gateway.adapt_whatsapp_result",
+      "action_index": 9,
+      "target_actor": "UserGatewayAgent",
+      "input": "fixture-action-input",
+      "expected": {
+        "action_reached": "user_gateway.adapt_whatsapp_result",
+        "actor": "UserGatewayAgent",
+        "type": "intent"
+      },
+      "allowed_values": "fixture.values.*",
+      "allowed_types": "fixture.nominal_types"
+    },
+    {
+      "id": "intent.chatbot.receive_message",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "action_id": "chatbot.receive_message",
+      "action_index": 10,
+      "target_actor": "ChatbotService",
+      "input": "fixture-action-input",
+      "expected": {
+        "action_reached": "chatbot.receive_message",
+        "actor": "ChatbotService",
+        "type": "intent"
+      },
+      "allowed_values": "fixture.values.*",
+      "allowed_types": "fixture.nominal_types"
+    },
+    {
+      "id": "intent.chatbot.check_active_session",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "action_id": "chatbot.check_active_session",
+      "action_index": 11,
+      "target_actor": "ChatbotService",
+      "input": "fixture-action-input",
+      "expected": {
+        "action_reached": "chatbot.check_active_session",
+        "actor": "ChatbotService",
+        "type": "intent"
+      },
+      "allowed_values": "fixture.values.*",
+      "allowed_types": "fixture.nominal_types"
+    },
+    {
+      "id": "intent.chatbot.create_magic_link",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "action_id": "chatbot.create_magic_link",
+      "action_index": 12,
+      "target_actor": "ChatbotService",
+      "input": "fixture-action-input",
+      "expected": {
+        "action_reached": "chatbot.create_magic_link",
+        "actor": "ChatbotService",
+        "type": "intent"
+      },
+      "allowed_values": "fixture.values.*",
+      "allowed_types": "fixture.nominal_types"
+    },
+    {
+      "id": "intent.chatbot.send_magic_link",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "action_id": "chatbot.send_magic_link",
+      "action_index": 13,
+      "target_actor": "ChatbotService",
+      "input": "fixture-action-input",
+      "expected": {
+        "action_reached": "chatbot.send_magic_link",
+        "actor": "ChatbotService",
+        "type": "intent"
+      },
+      "allowed_values": "fixture.values.*",
+      "allowed_types": "fixture.nominal_types"
+    },
+    {
+      "id": "intent.web.receive_passkey_route",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "action_id": "web.receive_passkey_route",
+      "action_index": 14,
+      "target_actor": "GatewayPlane",
+      "input": "fixture-action-input",
+      "expected": {
+        "action_reached": "web.receive_passkey_route",
+        "actor": "GatewayPlane",
+        "type": "intent"
+      },
+      "allowed_values": "fixture.values.*",
+      "allowed_types": "fixture.nominal_types"
+    },
+    {
+      "id": "intent.gateway.return_authenticated_result",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "action_id": "gateway.return_authenticated_result",
+      "action_index": 15,
+      "target_actor": "GatewayPlane",
+      "input": "fixture-action-input",
+      "expected": {
+        "action_reached": "gateway.return_authenticated_result",
+        "actor": "GatewayPlane",
+        "type": "intent"
+      },
+      "allowed_values": "fixture.values.*",
+      "allowed_types": "fixture.nominal_types"
+    }
+  ],
+  "results": [
+    {
+      "id": "run.intent.gateway.receive_whatsapp_number",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "status": "passed",
+      "action_id": "gateway.receive_whatsapp_number",
+      "actor": "GatewayPlane",
+      "assertions": [
+        "action exists",
+        "actor declared",
+        "input contract",
+        "output contract",
+        "fixture-only values/types"
+      ],
+      "evidence": {
+        "intent": "UserLoginIntent",
+        "action": "gateway.receive_whatsapp_number",
+        "fixture": "examples/2FA-passwordless"
+      },
+      "metrics": {
+        "assertions": 5,
+        "duration_ms": 0
+      },
+      "errors": [],
+      "generated_from": "2FA-passwordless"
+    },
+    {
+      "id": "run.intent.gateway.validate_chat_number",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "status": "passed",
+      "action_id": "gateway.validate_chat_number",
+      "actor": "GatewayPlane",
+      "assertions": [
+        "action exists",
+        "actor declared",
+        "input contract",
+        "output contract",
+        "fixture-only values/types"
+      ],
+      "evidence": {
+        "intent": "UserLoginIntent",
+        "action": "gateway.validate_chat_number",
+        "fixture": "examples/2FA-passwordless"
+      },
+      "metrics": {
+        "assertions": 5,
+        "duration_ms": 0
+      },
+      "errors": [],
+      "generated_from": "2FA-passwordless"
+    },
+    {
+      "id": "run.intent.gateway.check_whatsapp_exists",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "status": "passed",
+      "action_id": "gateway.check_whatsapp_exists",
+      "actor": "GatewayPlane",
+      "assertions": [
+        "action exists",
+        "actor declared",
+        "input contract",
+        "output contract",
+        "fixture-only values/types"
+      ],
+      "evidence": {
+        "intent": "UserLoginIntent",
+        "action": "gateway.check_whatsapp_exists",
+        "fixture": "examples/2FA-passwordless"
+      },
+      "metrics": {
+        "assertions": 5,
+        "duration_ms": 0
+      },
+      "errors": [],
+      "generated_from": "2FA-passwordless"
+    },
+    {
+      "id": "run.intent.login.create_magic_link",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "status": "passed",
+      "action_id": "login.create_magic_link",
+      "actor": "UserLoginIntent",
+      "assertions": [
+        "action exists",
+        "actor declared",
+        "input contract",
+        "output contract",
+        "fixture-only values/types"
+      ],
+      "evidence": {
+        "intent": "UserLoginIntent",
+        "action": "login.create_magic_link",
+        "fixture": "examples/2FA-passwordless"
+      },
+      "metrics": {
+        "assertions": 5,
+        "duration_ms": 0
+      },
+      "errors": [],
+      "generated_from": "2FA-passwordless"
+    },
+    {
+      "id": "run.intent.login.send_magic_link",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "status": "passed",
+      "action_id": "login.send_magic_link",
+      "actor": "UserLoginIntent",
+      "assertions": [
+        "action exists",
+        "actor declared",
+        "input contract",
+        "output contract",
+        "fixture-only values/types"
+      ],
+      "evidence": {
+        "intent": "UserLoginIntent",
+        "action": "login.send_magic_link",
+        "fixture": "examples/2FA-passwordless"
+      },
+      "metrics": {
+        "assertions": 5,
+        "duration_ms": 0
+      },
+      "errors": [],
+      "generated_from": "2FA-passwordless"
+    },
+    {
+      "id": "run.intent.login.receive_passkey",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "status": "passed",
+      "action_id": "login.receive_passkey",
+      "actor": "UserLoginIntent",
+      "assertions": [
+        "action exists",
+        "actor declared",
+        "input contract",
+        "output contract",
+        "fixture-only values/types"
+      ],
+      "evidence": {
+        "intent": "UserLoginIntent",
+        "action": "login.receive_passkey",
+        "fixture": "examples/2FA-passwordless"
+      },
+      "metrics": {
+        "assertions": 5,
+        "duration_ms": 0
+      },
+      "errors": [],
+      "generated_from": "2FA-passwordless"
+    },
+    {
+      "id": "run.intent.login.validate_passkey",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "status": "passed",
+      "action_id": "login.validate_passkey",
+      "actor": "UserLoginIntent",
+      "assertions": [
+        "action exists",
+        "actor declared",
+        "input contract",
+        "output contract",
+        "fixture-only values/types"
+      ],
+      "evidence": {
+        "intent": "UserLoginIntent",
+        "action": "login.validate_passkey",
+        "fixture": "examples/2FA-passwordless"
+      },
+      "metrics": {
+        "assertions": 5,
+        "duration_ms": 0
+      },
+      "errors": [],
+      "generated_from": "2FA-passwordless"
+    },
+    {
+      "id": "run.intent.gateway.send_result_user_gateway",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "status": "passed",
+      "action_id": "gateway.send_result_user_gateway",
+      "actor": "GatewayPlane",
+      "assertions": [
+        "action exists",
+        "actor declared",
+        "input contract",
+        "output contract",
+        "fixture-only values/types"
+      ],
+      "evidence": {
+        "intent": "UserLoginIntent",
+        "action": "gateway.send_result_user_gateway",
+        "fixture": "examples/2FA-passwordless"
+      },
+      "metrics": {
+        "assertions": 5,
+        "duration_ms": 0
+      },
+      "errors": [],
+      "generated_from": "2FA-passwordless"
+    },
+    {
+      "id": "run.intent.user_gateway.adapt_web_result",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "status": "passed",
+      "action_id": "user_gateway.adapt_web_result",
+      "actor": "UserGatewayAgent",
+      "assertions": [
+        "action exists",
+        "actor declared",
+        "input contract",
+        "output contract",
+        "fixture-only values/types"
+      ],
+      "evidence": {
+        "intent": "UserLoginIntent",
+        "action": "user_gateway.adapt_web_result",
+        "fixture": "examples/2FA-passwordless"
+      },
+      "metrics": {
+        "assertions": 5,
+        "duration_ms": 0
+      },
+      "errors": [],
+      "generated_from": "2FA-passwordless"
+    },
+    {
+      "id": "run.intent.user_gateway.adapt_whatsapp_result",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "status": "passed",
+      "action_id": "user_gateway.adapt_whatsapp_result",
+      "actor": "UserGatewayAgent",
+      "assertions": [
+        "action exists",
+        "actor declared",
+        "input contract",
+        "output contract",
+        "fixture-only values/types"
+      ],
+      "evidence": {
+        "intent": "UserLoginIntent",
+        "action": "user_gateway.adapt_whatsapp_result",
+        "fixture": "examples/2FA-passwordless"
+      },
+      "metrics": {
+        "assertions": 5,
+        "duration_ms": 0
+      },
+      "errors": [],
+      "generated_from": "2FA-passwordless"
+    },
+    {
+      "id": "run.intent.chatbot.receive_message",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "status": "passed",
+      "action_id": "chatbot.receive_message",
+      "actor": "ChatbotService",
+      "assertions": [
+        "action exists",
+        "actor declared",
+        "input contract",
+        "output contract",
+        "fixture-only values/types"
+      ],
+      "evidence": {
+        "intent": "UserLoginIntent",
+        "action": "chatbot.receive_message",
+        "fixture": "examples/2FA-passwordless"
+      },
+      "metrics": {
+        "assertions": 5,
+        "duration_ms": 0
+      },
+      "errors": [],
+      "generated_from": "2FA-passwordless"
+    },
+    {
+      "id": "run.intent.chatbot.check_active_session",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "status": "passed",
+      "action_id": "chatbot.check_active_session",
+      "actor": "ChatbotService",
+      "assertions": [
+        "action exists",
+        "actor declared",
+        "input contract",
+        "output contract",
+        "fixture-only values/types"
+      ],
+      "evidence": {
+        "intent": "UserLoginIntent",
+        "action": "chatbot.check_active_session",
+        "fixture": "examples/2FA-passwordless"
+      },
+      "metrics": {
+        "assertions": 5,
+        "duration_ms": 0
+      },
+      "errors": [],
+      "generated_from": "2FA-passwordless"
+    },
+    {
+      "id": "run.intent.chatbot.create_magic_link",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "status": "passed",
+      "action_id": "chatbot.create_magic_link",
+      "actor": "ChatbotService",
+      "assertions": [
+        "action exists",
+        "actor declared",
+        "input contract",
+        "output contract",
+        "fixture-only values/types"
+      ],
+      "evidence": {
+        "intent": "UserLoginIntent",
+        "action": "chatbot.create_magic_link",
+        "fixture": "examples/2FA-passwordless"
+      },
+      "metrics": {
+        "assertions": 5,
+        "duration_ms": 0
+      },
+      "errors": [],
+      "generated_from": "2FA-passwordless"
+    },
+    {
+      "id": "run.intent.chatbot.send_magic_link",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "status": "passed",
+      "action_id": "chatbot.send_magic_link",
+      "actor": "ChatbotService",
+      "assertions": [
+        "action exists",
+        "actor declared",
+        "input contract",
+        "output contract",
+        "fixture-only values/types"
+      ],
+      "evidence": {
+        "intent": "UserLoginIntent",
+        "action": "chatbot.send_magic_link",
+        "fixture": "examples/2FA-passwordless"
+      },
+      "metrics": {
+        "assertions": 5,
+        "duration_ms": 0
+      },
+      "errors": [],
+      "generated_from": "2FA-passwordless"
+    },
+    {
+      "id": "run.intent.web.receive_passkey_route",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "status": "passed",
+      "action_id": "web.receive_passkey_route",
+      "actor": "GatewayPlane",
+      "assertions": [
+        "action exists",
+        "actor declared",
+        "input contract",
+        "output contract",
+        "fixture-only values/types"
+      ],
+      "evidence": {
+        "intent": "UserLoginIntent",
+        "action": "web.receive_passkey_route",
+        "fixture": "examples/2FA-passwordless"
+      },
+      "metrics": {
+        "assertions": 5,
+        "duration_ms": 0
+      },
+      "errors": [],
+      "generated_from": "2FA-passwordless"
+    },
+    {
+      "id": "run.intent.gateway.return_authenticated_result",
+      "type": "intent",
+      "skill": "ubiq.skill.intent",
+      "status": "passed",
+      "action_id": "gateway.return_authenticated_result",
+      "actor": "GatewayPlane",
+      "assertions": [
+        "action exists",
+        "actor declared",
+        "input contract",
+        "output contract",
+        "fixture-only values/types"
+      ],
+      "evidence": {
+        "intent": "UserLoginIntent",
+        "action": "gateway.return_authenticated_result",
+        "fixture": "examples/2FA-passwordless"
+      },
+      "metrics": {
+        "assertions": 5,
+        "duration_ms": 0
+      },
+      "errors": [],
+      "generated_from": "2FA-passwordless"
+    }
+  ]
+}
