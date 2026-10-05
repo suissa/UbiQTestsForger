@@ -1,0 +1,133 @@
+{
+  "scenario": "2FA-passwordless",
+  "generated_by": "UbiQTestsForger",
+  "matrix": {
+    "skills": 17,
+    "actions": 16,
+    "total": 272
+  },
+  "status": "passed",
+  "validation_errors": [],
+  "by_type": {
+    "intent": {
+      "skill": "ubiq.skill.intent",
+      "cases": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    "trajectory": {
+      "skill": "ubiq.skill.trajectory",
+      "cases": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    "behavioral": {
+      "skill": "ubiq.skill.behavioral",
+      "cases": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    "acceptance": {
+      "skill": "ubiq.skill.acceptance",
+      "cases": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    "unit": {
+      "skill": "ubiq.skill.unit",
+      "cases": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    "component": {
+      "skill": "ubiq.skill.component",
+      "cases": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    "integration": {
+      "skill": "ubiq.skill.integration",
+      "cases": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    "contract": {
+      "skill": "ubiq.skill.contract",
+      "cases": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    "system": {
+      "skill": "ubiq.skill.system",
+      "cases": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    "e2e": {
+      "skill": "ubiq.skill.e2e",
+      "cases": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    "smoke": {
+      "skill": "ubiq.skill.smoke",
+      "cases": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    "regression": {
+      "skill": "ubiq.skill.regression",
+      "cases": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    "performance": {
+      "skill": "ubiq.skill.performance",
+      "cases": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    "security": {
+      "skill": "ubiq.skill.security",
+      "cases": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    "accessibility": {
+      "skill": "ubiq.skill.accessibility",
+      "cases": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    "compatibility": {
+      "skill": "ubiq.skill.compatibility",
+      "cases": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    "reliability": {
+      "skill": "ubiq.skill.reliability",
+      "cases": 16,
+      "passed": 16,
+      "failed": 0
+    }
+  },
+  "actions": [
+    "gateway.receive_whatsapp_number",
+    "gateway.validate_chat_number",
+    "gateway.check_whatsapp_exists",
+    "login.create_magic_link",
+    "login.send_magic_link",
+    "login.receive_passkey",
+    "login.validate_passkey",
+    "gateway.send_result_user_gateway",
+    "user_gateway.adapt_web_result",
+    "user_gateway.adapt_whatsapp_result",
+    "chatbot.receive_message",
+    "chatbot.check_active_session",
+    "chatbot.create_magic_link",
+    "chatbot.send_magic_link",
+    "web.receive_passkey_route",
+    "gateway.return_authenticated_result"
+  ]
+}
