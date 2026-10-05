@@ -1,0 +1,28 @@
+{
+  "actors": {
+    "gateway": {
+      "id": "GatewayPlane",
+      "role": "receives canonical requests and orchestrates"
+    },
+    "user_gateway": {
+      "id": "UserGatewayAgent",
+      "role": "adapts authentication result to user channels"
+    },
+    "login": {
+      "id": "UserLoginIntent",
+      "role": "executes passwordless login behavior"
+    },
+    "evolution": {
+      "id": "EvolutionGoAdapter",
+      "role": "WhatsApp existence and message transport"
+    },
+    "webauthn": {
+      "id": "WebAuthnAdapter",
+      "role": "passkey authentication"
+    },
+    "chatbot": {
+      "id": "ChatbotService",
+      "role": "canonical inbound WhatsApp chatbot route"
+    }
+  }
+}
