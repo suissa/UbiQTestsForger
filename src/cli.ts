@@ -1,0 +1,5 @@
+import {loadScenario} from "./scenario.ts";import {executeTests,generateTests,materialize,validateGeneratedTests} from "./engine.ts";
+const [command,root="examples/2FA-passwordless"]=process.argv.slice(2);const scenario=await loadScenario(root);const tests=generateTests(scenario);
+if(command==="check"){const errors=validateGeneratedTests(scenario,tests);if(errors.length){console.error(errors.join("\n"));process.exitCode=1}else console.log(JSON.stringify({ok:true,generated_tests:tests.length},null,2))}
+else if(command==="generate"||command==="run"){const runs=executeTests(scenario,tests),errors=validateGeneratedTests(scenario,tests);await materialize(root,scenario,tests,runs);console.log(JSON.stringify({scenario:scenario.id,generated_tests:tests.length,passed:runs.filter(r=>r.status==="passed").length,failed:runs.filter(r=>r.status==="failed").length,validation_errors:errors},null,2));if(errors.length||runs.some(r=>r.status==="failed"))process.exitCode=1}
+else console.log("Usage: node --experimental-strip-types src/cli.ts <generate|run|check> <example-root>");
