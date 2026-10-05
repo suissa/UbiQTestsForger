@@ -1,0 +1,12 @@
+{
+  "required": [
+    "id",
+    "type",
+    "skill",
+    "action_id",
+    "input",
+    "expected",
+    "evidence",
+    "status"
+  ]
+}
