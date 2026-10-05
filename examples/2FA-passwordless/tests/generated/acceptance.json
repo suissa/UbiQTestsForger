@@ -9,14 +9,33 @@
       "action_id": "gateway.receive_whatsapp_number",
       "action_index": 0,
       "target_actor": "GatewayPlane",
-      "input": "fixture-action-input",
+      "input": {
+        "whatsapp_number": {
+          "$ref": "values.whatsapp_number"
+        }
+      },
       "expected": {
         "action_reached": "gateway.receive_whatsapp_number",
         "actor": "GatewayPlane",
+        "output_keys": [],
         "type": "acceptance"
       },
-      "allowed_values": "fixture.values.*",
-      "allowed_types": "fixture.nominal_types"
+      "allowed_values": [
+        "whatsapp_number",
+        "magic_link",
+        "passkey_credential",
+        "session_id",
+        "login_result",
+        "web_message",
+        "whatsapp_message",
+        "inbound_message"
+      ],
+      "allowed_types": [
+        "WhatsAppNumber",
+        "ChatNumber",
+        "PasskeyCredential",
+        "SessionId"
+      ]
     },
     {
       "id": "acceptance.gateway.validate_chat_number",
@@ -25,14 +44,33 @@
       "action_id": "gateway.validate_chat_number",
       "action_index": 1,
       "target_actor": "GatewayPlane",
-      "input": "fixture-action-input",
+      "input": {
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        }
+      },
       "expected": {
         "action_reached": "gateway.validate_chat_number",
         "actor": "GatewayPlane",
+        "output_keys": [],
         "type": "acceptance"
       },
-      "allowed_values": "fixture.values.*",
-      "allowed_types": "fixture.nominal_types"
+      "allowed_values": [
+        "whatsapp_number",
+        "magic_link",
+        "passkey_credential",
+        "session_id",
+        "login_result",
+        "web_message",
+        "whatsapp_message",
+        "inbound_message"
+      ],
+      "allowed_types": [
+        "WhatsAppNumber",
+        "ChatNumber",
+        "PasskeyCredential",
+        "SessionId"
+      ]
     },
     {
       "id": "acceptance.gateway.check_whatsapp_exists",
@@ -41,14 +79,33 @@
       "action_id": "gateway.check_whatsapp_exists",
       "action_index": 2,
       "target_actor": "GatewayPlane",
-      "input": "fixture-action-input",
+      "input": {
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        }
+      },
       "expected": {
         "action_reached": "gateway.check_whatsapp_exists",
         "actor": "GatewayPlane",
+        "output_keys": [],
         "type": "acceptance"
       },
-      "allowed_values": "fixture.values.*",
-      "allowed_types": "fixture.nominal_types"
+      "allowed_values": [
+        "whatsapp_number",
+        "magic_link",
+        "passkey_credential",
+        "session_id",
+        "login_result",
+        "web_message",
+        "whatsapp_message",
+        "inbound_message"
+      ],
+      "allowed_types": [
+        "WhatsAppNumber",
+        "ChatNumber",
+        "PasskeyCredential",
+        "SessionId"
+      ]
     },
     {
       "id": "acceptance.login.create_magic_link",
@@ -57,14 +114,33 @@
       "action_id": "login.create_magic_link",
       "action_index": 3,
       "target_actor": "UserLoginIntent",
-      "input": "fixture-action-input",
+      "input": {
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        }
+      },
       "expected": {
         "action_reached": "login.create_magic_link",
         "actor": "UserLoginIntent",
+        "output_keys": [],
         "type": "acceptance"
       },
-      "allowed_values": "fixture.values.*",
-      "allowed_types": "fixture.nominal_types"
+      "allowed_values": [
+        "whatsapp_number",
+        "magic_link",
+        "passkey_credential",
+        "session_id",
+        "login_result",
+        "web_message",
+        "whatsapp_message",
+        "inbound_message"
+      ],
+      "allowed_types": [
+        "WhatsAppNumber",
+        "ChatNumber",
+        "PasskeyCredential",
+        "SessionId"
+      ]
     },
     {
       "id": "acceptance.login.send_magic_link",
@@ -73,14 +149,36 @@
       "action_id": "login.send_magic_link",
       "action_index": 4,
       "target_actor": "UserLoginIntent",
-      "input": "fixture-action-input",
+      "input": {
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        },
+        "magic_link": {
+          "$ref": "values.magic_link"
+        }
+      },
       "expected": {
         "action_reached": "login.send_magic_link",
         "actor": "UserLoginIntent",
+        "output_keys": [],
         "type": "acceptance"
       },
-      "allowed_values": "fixture.values.*",
-      "allowed_types": "fixture.nominal_types"
+      "allowed_values": [
+        "whatsapp_number",
+        "magic_link",
+        "passkey_credential",
+        "session_id",
+        "login_result",
+        "web_message",
+        "whatsapp_message",
+        "inbound_message"
+      ],
+      "allowed_types": [
+        "WhatsAppNumber",
+        "ChatNumber",
+        "PasskeyCredential",
+        "SessionId"
+      ]
     },
     {
       "id": "acceptance.login.receive_passkey",
@@ -89,14 +187,33 @@
       "action_id": "login.receive_passkey",
       "action_index": 5,
       "target_actor": "UserLoginIntent",
-      "input": "fixture-action-input",
+      "input": {
+        "passkey": {
+          "$ref": "values.passkey_credential"
+        }
+      },
       "expected": {
         "action_reached": "login.receive_passkey",
         "actor": "UserLoginIntent",
+        "output_keys": [],
         "type": "acceptance"
       },
-      "allowed_values": "fixture.values.*",
-      "allowed_types": "fixture.nominal_types"
+      "allowed_values": [
+        "whatsapp_number",
+        "magic_link",
+        "passkey_credential",
+        "session_id",
+        "login_result",
+        "web_message",
+        "whatsapp_message",
+        "inbound_message"
+      ],
+      "allowed_types": [
+        "WhatsAppNumber",
+        "ChatNumber",
+        "PasskeyCredential",
+        "SessionId"
+      ]
     },
     {
       "id": "acceptance.login.validate_passkey",
@@ -105,14 +222,36 @@
       "action_id": "login.validate_passkey",
       "action_index": 6,
       "target_actor": "UserLoginIntent",
-      "input": "fixture-action-input",
+      "input": {
+        "passkey": {
+          "$ref": "values.passkey_credential"
+        },
+        "session_id": {
+          "$ref": "values.session_id"
+        }
+      },
       "expected": {
         "action_reached": "login.validate_passkey",
         "actor": "UserLoginIntent",
+        "output_keys": [],
         "type": "acceptance"
       },
-      "allowed_values": "fixture.values.*",
-      "allowed_types": "fixture.nominal_types"
+      "allowed_values": [
+        "whatsapp_number",
+        "magic_link",
+        "passkey_credential",
+        "session_id",
+        "login_result",
+        "web_message",
+        "whatsapp_message",
+        "inbound_message"
+      ],
+      "allowed_types": [
+        "WhatsAppNumber",
+        "ChatNumber",
+        "PasskeyCredential",
+        "SessionId"
+      ]
     },
     {
       "id": "acceptance.gateway.send_result_user_gateway",
@@ -121,14 +260,33 @@
       "action_id": "gateway.send_result_user_gateway",
       "action_index": 7,
       "target_actor": "GatewayPlane",
-      "input": "fixture-action-input",
+      "input": {
+        "result": {
+          "$ref": "values.login_result"
+        }
+      },
       "expected": {
         "action_reached": "gateway.send_result_user_gateway",
         "actor": "GatewayPlane",
+        "output_keys": [],
         "type": "acceptance"
       },
-      "allowed_values": "fixture.values.*",
-      "allowed_types": "fixture.nominal_types"
+      "allowed_values": [
+        "whatsapp_number",
+        "magic_link",
+        "passkey_credential",
+        "session_id",
+        "login_result",
+        "web_message",
+        "whatsapp_message",
+        "inbound_message"
+      ],
+      "allowed_types": [
+        "WhatsAppNumber",
+        "ChatNumber",
+        "PasskeyCredential",
+        "SessionId"
+      ]
     },
     {
       "id": "acceptance.user_gateway.adapt_web_result",
@@ -137,14 +295,36 @@
       "action_id": "user_gateway.adapt_web_result",
       "action_index": 8,
       "target_actor": "UserGatewayAgent",
-      "input": "fixture-action-input",
+      "input": {
+        "result": {
+          "$ref": "values.login_result"
+        },
+        "message": {
+          "$ref": "values.web_message"
+        }
+      },
       "expected": {
         "action_reached": "user_gateway.adapt_web_result",
         "actor": "UserGatewayAgent",
+        "output_keys": [],
         "type": "acceptance"
       },
-      "allowed_values": "fixture.values.*",
-      "allowed_types": "fixture.nominal_types"
+      "allowed_values": [
+        "whatsapp_number",
+        "magic_link",
+        "passkey_credential",
+        "session_id",
+        "login_result",
+        "web_message",
+        "whatsapp_message",
+        "inbound_message"
+      ],
+      "allowed_types": [
+        "WhatsAppNumber",
+        "ChatNumber",
+        "PasskeyCredential",
+        "SessionId"
+      ]
     },
     {
       "id": "acceptance.user_gateway.adapt_whatsapp_result",
@@ -153,14 +333,36 @@
       "action_id": "user_gateway.adapt_whatsapp_result",
       "action_index": 9,
       "target_actor": "UserGatewayAgent",
-      "input": "fixture-action-input",
+      "input": {
+        "result": {
+          "$ref": "values.login_result"
+        },
+        "message": {
+          "$ref": "values.whatsapp_message"
+        }
+      },
       "expected": {
         "action_reached": "user_gateway.adapt_whatsapp_result",
         "actor": "UserGatewayAgent",
+        "output_keys": [],
         "type": "acceptance"
       },
-      "allowed_values": "fixture.values.*",
-      "allowed_types": "fixture.nominal_types"
+      "allowed_values": [
+        "whatsapp_number",
+        "magic_link",
+        "passkey_credential",
+        "session_id",
+        "login_result",
+        "web_message",
+        "whatsapp_message",
+        "inbound_message"
+      ],
+      "allowed_types": [
+        "WhatsAppNumber",
+        "ChatNumber",
+        "PasskeyCredential",
+        "SessionId"
+      ]
     },
     {
       "id": "acceptance.chatbot.receive_message",
@@ -169,14 +371,36 @@
       "action_id": "chatbot.receive_message",
       "action_index": 10,
       "target_actor": "ChatbotService",
-      "input": "fixture-action-input",
+      "input": {
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        },
+        "message": {
+          "$ref": "values.inbound_message"
+        }
+      },
       "expected": {
         "action_reached": "chatbot.receive_message",
         "actor": "ChatbotService",
+        "output_keys": [],
         "type": "acceptance"
       },
-      "allowed_values": "fixture.values.*",
-      "allowed_types": "fixture.nominal_types"
+      "allowed_values": [
+        "whatsapp_number",
+        "magic_link",
+        "passkey_credential",
+        "session_id",
+        "login_result",
+        "web_message",
+        "whatsapp_message",
+        "inbound_message"
+      ],
+      "allowed_types": [
+        "WhatsAppNumber",
+        "ChatNumber",
+        "PasskeyCredential",
+        "SessionId"
+      ]
     },
     {
       "id": "acceptance.chatbot.check_active_session",
@@ -185,14 +409,33 @@
       "action_id": "chatbot.check_active_session",
       "action_index": 11,
       "target_actor": "ChatbotService",
-      "input": "fixture-action-input",
+      "input": {
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        }
+      },
       "expected": {
         "action_reached": "chatbot.check_active_session",
         "actor": "ChatbotService",
+        "output_keys": [],
         "type": "acceptance"
       },
-      "allowed_values": "fixture.values.*",
-      "allowed_types": "fixture.nominal_types"
+      "allowed_values": [
+        "whatsapp_number",
+        "magic_link",
+        "passkey_credential",
+        "session_id",
+        "login_result",
+        "web_message",
+        "whatsapp_message",
+        "inbound_message"
+      ],
+      "allowed_types": [
+        "WhatsAppNumber",
+        "ChatNumber",
+        "PasskeyCredential",
+        "SessionId"
+      ]
     },
     {
       "id": "acceptance.chatbot.create_magic_link",
@@ -201,14 +444,33 @@
       "action_id": "chatbot.create_magic_link",
       "action_index": 12,
       "target_actor": "ChatbotService",
-      "input": "fixture-action-input",
+      "input": {
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        }
+      },
       "expected": {
         "action_reached": "chatbot.create_magic_link",
         "actor": "ChatbotService",
+        "output_keys": [],
         "type": "acceptance"
       },
-      "allowed_values": "fixture.values.*",
-      "allowed_types": "fixture.nominal_types"
+      "allowed_values": [
+        "whatsapp_number",
+        "magic_link",
+        "passkey_credential",
+        "session_id",
+        "login_result",
+        "web_message",
+        "whatsapp_message",
+        "inbound_message"
+      ],
+      "allowed_types": [
+        "WhatsAppNumber",
+        "ChatNumber",
+        "PasskeyCredential",
+        "SessionId"
+      ]
     },
     {
       "id": "acceptance.chatbot.send_magic_link",
@@ -217,14 +479,36 @@
       "action_id": "chatbot.send_magic_link",
       "action_index": 13,
       "target_actor": "ChatbotService",
-      "input": "fixture-action-input",
+      "input": {
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        },
+        "magic_link": {
+          "$ref": "values.magic_link"
+        }
+      },
       "expected": {
         "action_reached": "chatbot.send_magic_link",
         "actor": "ChatbotService",
+        "output_keys": [],
         "type": "acceptance"
       },
-      "allowed_values": "fixture.values.*",
-      "allowed_types": "fixture.nominal_types"
+      "allowed_values": [
+        "whatsapp_number",
+        "magic_link",
+        "passkey_credential",
+        "session_id",
+        "login_result",
+        "web_message",
+        "whatsapp_message",
+        "inbound_message"
+      ],
+      "allowed_types": [
+        "WhatsAppNumber",
+        "ChatNumber",
+        "PasskeyCredential",
+        "SessionId"
+      ]
     },
     {
       "id": "acceptance.web.receive_passkey_route",
@@ -233,14 +517,36 @@
       "action_id": "web.receive_passkey_route",
       "action_index": 14,
       "target_actor": "GatewayPlane",
-      "input": "fixture-action-input",
+      "input": {
+        "passkey": {
+          "$ref": "values.passkey_credential"
+        },
+        "chat_number": {
+          "$ref": "values.whatsapp_number"
+        }
+      },
       "expected": {
         "action_reached": "web.receive_passkey_route",
         "actor": "GatewayPlane",
+        "output_keys": [],
         "type": "acceptance"
       },
-      "allowed_values": "fixture.values.*",
-      "allowed_types": "fixture.nominal_types"
+      "allowed_values": [
+        "whatsapp_number",
+        "magic_link",
+        "passkey_credential",
+        "session_id",
+        "login_result",
+        "web_message",
+        "whatsapp_message",
+        "inbound_message"
+      ],
+      "allowed_types": [
+        "WhatsAppNumber",
+        "ChatNumber",
+        "PasskeyCredential",
+        "SessionId"
+      ]
     },
     {
       "id": "acceptance.gateway.return_authenticated_result",
@@ -249,14 +555,36 @@
       "action_id": "gateway.return_authenticated_result",
       "action_index": 15,
       "target_actor": "GatewayPlane",
-      "input": "fixture-action-input",
+      "input": {
+        "session_id": {
+          "$ref": "values.session_id"
+        },
+        "result": {
+          "$ref": "values.login_result"
+        }
+      },
       "expected": {
         "action_reached": "gateway.return_authenticated_result",
         "actor": "GatewayPlane",
+        "output_keys": [],
         "type": "acceptance"
       },
-      "allowed_values": "fixture.values.*",
-      "allowed_types": "fixture.nominal_types"
+      "allowed_values": [
+        "whatsapp_number",
+        "magic_link",
+        "passkey_credential",
+        "session_id",
+        "login_result",
+        "web_message",
+        "whatsapp_message",
+        "inbound_message"
+      ],
+      "allowed_types": [
+        "WhatsAppNumber",
+        "ChatNumber",
+        "PasskeyCredential",
+        "SessionId"
+      ]
     }
   ],
   "results": [
@@ -270,14 +598,16 @@
       "assertions": [
         "action exists",
         "actor declared",
-        "input contract",
+        "input keys declared",
         "output contract",
         "fixture-only values/types"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "gateway.receive_whatsapp_number",
-        "fixture": "examples/2FA-passwordless"
+        "semantic_types": [
+          "WhatsAppNumber"
+        ]
       },
       "metrics": {
         "assertions": 5,
@@ -296,14 +626,16 @@
       "assertions": [
         "action exists",
         "actor declared",
-        "input contract",
+        "input keys declared",
         "output contract",
         "fixture-only values/types"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "gateway.validate_chat_number",
-        "fixture": "examples/2FA-passwordless"
+        "semantic_types": [
+          "ChatNumber"
+        ]
       },
       "metrics": {
         "assertions": 5,
@@ -322,14 +654,16 @@
       "assertions": [
         "action exists",
         "actor declared",
-        "input contract",
+        "input keys declared",
         "output contract",
         "fixture-only values/types"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "gateway.check_whatsapp_exists",
-        "fixture": "examples/2FA-passwordless"
+        "semantic_types": [
+          "ChatNumber"
+        ]
       },
       "metrics": {
         "assertions": 5,
@@ -348,14 +682,16 @@
       "assertions": [
         "action exists",
         "actor declared",
-        "input contract",
+        "input keys declared",
         "output contract",
         "fixture-only values/types"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "login.create_magic_link",
-        "fixture": "examples/2FA-passwordless"
+        "semantic_types": [
+          "WhatsAppNumber"
+        ]
       },
       "metrics": {
         "assertions": 5,
@@ -374,14 +710,16 @@
       "assertions": [
         "action exists",
         "actor declared",
-        "input contract",
+        "input keys declared",
         "output contract",
         "fixture-only values/types"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "login.send_magic_link",
-        "fixture": "examples/2FA-passwordless"
+        "semantic_types": [
+          "WhatsAppNumber"
+        ]
       },
       "metrics": {
         "assertions": 5,
@@ -400,14 +738,16 @@
       "assertions": [
         "action exists",
         "actor declared",
-        "input contract",
+        "input keys declared",
         "output contract",
         "fixture-only values/types"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "login.receive_passkey",
-        "fixture": "examples/2FA-passwordless"
+        "semantic_types": [
+          "PasskeyCredential"
+        ]
       },
       "metrics": {
         "assertions": 5,
@@ -426,14 +766,17 @@
       "assertions": [
         "action exists",
         "actor declared",
-        "input contract",
+        "input keys declared",
         "output contract",
         "fixture-only values/types"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "login.validate_passkey",
-        "fixture": "examples/2FA-passwordless"
+        "semantic_types": [
+          "PasskeyCredential",
+          "SessionId"
+        ]
       },
       "metrics": {
         "assertions": 5,
@@ -452,14 +795,14 @@
       "assertions": [
         "action exists",
         "actor declared",
-        "input contract",
+        "input keys declared",
         "output contract",
         "fixture-only values/types"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "gateway.send_result_user_gateway",
-        "fixture": "examples/2FA-passwordless"
+        "semantic_types": []
       },
       "metrics": {
         "assertions": 5,
@@ -478,14 +821,14 @@
       "assertions": [
         "action exists",
         "actor declared",
-        "input contract",
+        "input keys declared",
         "output contract",
         "fixture-only values/types"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "user_gateway.adapt_web_result",
-        "fixture": "examples/2FA-passwordless"
+        "semantic_types": []
       },
       "metrics": {
         "assertions": 5,
@@ -504,14 +847,14 @@
       "assertions": [
         "action exists",
         "actor declared",
-        "input contract",
+        "input keys declared",
         "output contract",
         "fixture-only values/types"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "user_gateway.adapt_whatsapp_result",
-        "fixture": "examples/2FA-passwordless"
+        "semantic_types": []
       },
       "metrics": {
         "assertions": 5,
@@ -530,14 +873,16 @@
       "assertions": [
         "action exists",
         "actor declared",
-        "input contract",
+        "input keys declared",
         "output contract",
         "fixture-only values/types"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "chatbot.receive_message",
-        "fixture": "examples/2FA-passwordless"
+        "semantic_types": [
+          "ChatNumber"
+        ]
       },
       "metrics": {
         "assertions": 5,
@@ -556,14 +901,16 @@
       "assertions": [
         "action exists",
         "actor declared",
-        "input contract",
+        "input keys declared",
         "output contract",
         "fixture-only values/types"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "chatbot.check_active_session",
-        "fixture": "examples/2FA-passwordless"
+        "semantic_types": [
+          "ChatNumber"
+        ]
       },
       "metrics": {
         "assertions": 5,
@@ -582,14 +929,16 @@
       "assertions": [
         "action exists",
         "actor declared",
-        "input contract",
+        "input keys declared",
         "output contract",
         "fixture-only values/types"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "chatbot.create_magic_link",
-        "fixture": "examples/2FA-passwordless"
+        "semantic_types": [
+          "WhatsAppNumber"
+        ]
       },
       "metrics": {
         "assertions": 5,
@@ -608,14 +957,16 @@
       "assertions": [
         "action exists",
         "actor declared",
-        "input contract",
+        "input keys declared",
         "output contract",
         "fixture-only values/types"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "chatbot.send_magic_link",
-        "fixture": "examples/2FA-passwordless"
+        "semantic_types": [
+          "WhatsAppNumber"
+        ]
       },
       "metrics": {
         "assertions": 5,
@@ -634,14 +985,17 @@
       "assertions": [
         "action exists",
         "actor declared",
-        "input contract",
+        "input keys declared",
         "output contract",
         "fixture-only values/types"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "web.receive_passkey_route",
-        "fixture": "examples/2FA-passwordless"
+        "semantic_types": [
+          "PasskeyCredential",
+          "WhatsAppNumber"
+        ]
       },
       "metrics": {
         "assertions": 5,
@@ -660,14 +1014,16 @@
       "assertions": [
         "action exists",
         "actor declared",
-        "input contract",
+        "input keys declared",
         "output contract",
         "fixture-only values/types"
       ],
       "evidence": {
         "intent": "UserLoginIntent",
         "action": "gateway.return_authenticated_result",
-        "fixture": "examples/2FA-passwordless"
+        "semantic_types": [
+          "SessionId"
+        ]
       },
       "metrics": {
         "assertions": 5,
