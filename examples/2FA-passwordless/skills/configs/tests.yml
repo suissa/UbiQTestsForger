@@ -1,0 +1,6 @@
+{
+  "assertions": [
+    "one skill per canonical type",
+    "one generated case per action per skill"
+  ]
+}
