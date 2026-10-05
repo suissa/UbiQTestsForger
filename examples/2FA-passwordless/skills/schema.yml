@@ -1,0 +1,6 @@
+{
+  "required": [
+    "canonical_types",
+    "pipeline"
+  ]
+}
