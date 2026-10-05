@@ -1,0 +1,6 @@
+{
+  "id": "2FA-passwordless.tests",
+  "kind": "tests",
+  "generated_by": "UbiQTestsForger",
+  "matrix": "canonical_type x action"
+}
