@@ -1,0 +1,9 @@
+{
+  "pipeline": [
+    "load manifest/config/schema",
+    "generate test per skill x action",
+    "validate declared references",
+    "execute skill",
+    "persist TestRun"
+  ]
+}
