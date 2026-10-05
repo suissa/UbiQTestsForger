@@ -1,0 +1,7 @@
+{
+  "assertions": [
+    "no undeclared values",
+    "no undeclared nominal types",
+    "all cases pass"
+  ]
+}
