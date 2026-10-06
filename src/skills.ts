@@ -1,30 +1,21 @@
-import type { CanonicalTestType, Scenario, TestCase, TestRun } from "./types.ts";
+import type {CanonicalTestType, Scenario, TestCase, TestRun} from "./types.ts";
+import {SKILL_CONTRACTS} from "./skill-contracts.ts";
 export const CANONICAL_TEST_TYPES:CanonicalTestType[]=["intent","trajectory","behavioral","acceptance","unit","component","integration","contract","system","e2e","smoke","regression","performance","security","accessibility","compatibility","reliability"];
-export interface TestSkill { id:string; type:CanonicalTestType; purpose:string; when:string; generate:(s:Scenario,i:number)=>TestCase; execute:(t:TestCase,s:Scenario)=>TestRun }
+export interface TestSkill { id:string; type:CanonicalTestType; purpose:string; when:string; contract:typeof SKILL_CONTRACTS[CanonicalTestType]; generate:(s:Scenario,i:number)=>TestCase; execute:(t:TestCase,s:Scenario)=>TestRun }
 const descriptions:Record<CanonicalTestType,[string,string]>={
-intent:["declared intent reaches its semantic action","intent changes and design validation"],
-trajectory:["ordered transitions between actors and actions","orchestration or flow changes"],
-behavioral:["observed behavior matches declared behavior","behavior changes and replay"],
-acceptance:["user/business acceptance criteria are satisfied","release acceptance"],
-unit:["one atomic behavior is correct in isolation","every code change"],
-component:["one agent/action boundary is correct","component changes"],
-integration:["action and agent boundaries are correct","integration changes and CI"],
-contract:["semantic provider/consumer contracts match","contract/schema changes"],
-system:["complete logical system behavior is correct","pre-release and deployment"],
-e2e:["complete user journey and channels are correct","pre-release and critical paths"],
-smoke:["smallest critical path is usable","every deployment"],
-regression:["canonical behavior remains correct after change","release/change sets"],
-performance:["latency and throughput budgets are met","performance-sensitive releases"],
-security:["authentication and trust boundaries are protected","security-sensitive changes"],
-accessibility:["channel responses preserve accessible semantic meaning","UI/message changes"],
-compatibility:["behavior works across supported channel adapters","adapter/runtime changes"],
-reliability:["repeatability, idempotency and recovery hold","CI/release resilience checks"]};
+intent:["declared intent reaches its semantic action","intent changes and design validation"],trajectory:["ordered transitions between actors and actions","orchestration or flow changes"],behavioral:["observed behavior matches declared behavior","behavior changes and replay"],acceptance:["user/business acceptance criteria are satisfied","release acceptance"],unit:["one atomic behavior is correct in isolation","every code change"],component:["one agent/action boundary is correct","component changes"],integration:["action and agent boundaries are correct","integration changes and CI"],contract:["semantic provider/consumer contracts match","contract/schema changes"],system:["complete logical system behavior is correct","pre-release and deployment"],e2e:["complete user journey and channels are correct","pre-release and critical paths"],smoke:["smallest critical path is usable","every deployment"],regression:["canonical behavior remains correct after change","release/change sets"],performance:["latency and throughput budgets are met","performance-sensitive releases"],security:["authentication and trust boundaries are protected","security-sensitive changes"],accessibility:["channel responses preserve accessible semantic meaning","UI/message changes"],compatibility:["behavior works across supported channel adapters","adapter/runtime changes"],reliability:["repeatability, idempotency and recovery hold","CI/release resilience checks"]};
 function makeSkill(type:CanonicalTestType):TestSkill {
-  const [purpose,when]=descriptions[type];
-  return {
-    id:`ubiq.skill.${type}`,type,purpose,when,
-    generate:(s,i)=>{const a=s.actions[i];return {id:`${type}.${a.id}`,type,skill:`ubiq.skill.${type}`,action_id:a.id,action_index:i,target_actor:a.actor,input:structuredClone(a.input),expected:{action_reached:a.id,actor:a.actor,output_keys:Object.keys(a.output),type},allowed_values:Object.keys(s.values),allowed_types:s.nominal_types}},
-    execute:(t,s)=>{const a=s.actions[t.action_index];const assertions=["action exists","actor is declared","input keys are declared","expected output keys match contract","fixture values/types are declared"];const ok=a.id===t.action_id&&a.actor===t.target_actor&&Object.keys(t.input).every(k=>Object.hasOwn(a.input,k))&&t.allowed_values.every(v=>Object.hasOwn(s.values,v))&&t.allowed_types.every(v=>s.nominal_types.includes(v));return {id:`run.${t.id}`,type:t.type,skill:t.skill,status:ok?"passed":"failed",action_id:t.action_id,actor:t.target_actor,assertions,evidence:{intent:s.intent,action:a,expected:t.expected},metrics:{assertions:assertions.length,duration_ms:0},errors:ok?[]:["Generated test escaped the declared scenario contract"],generated_from:s.id}}
+  const [purpose,when]=descriptions[type]; const contract=SKILL_CONTRACTS[type];
+  return {id:`ubiq.skill.${type}`,type,purpose,when,contract,
+    generate:(s,i)=>{const a=s.actions[i];return {id:`${type}.${a.id}`,type,skill:`ubiq.skill.${type}`,action_id:a.id,action_index:i,target_actor:a.actor,input:structuredClone(a.input),expected:{action_reached:a.id,actor:a.actor,output_keys:Object.keys(a.output),type,depends_on:a.depends_on??[]},allowed_values:Object.keys(s.values),allowed_types:s.nominal_types}},
+    execute:(t,s)=>{const a=s.actions[t.action_index];const assertions=[...contract.invariants,"action exists","actor is declared","input/output keys match contract","fixture references are declared","semantic types are declared"];const errors:string[]=[];
+      if(!a||a.id!==t.action_id) errors.push("action is not the declared action");
+      if(a&&!Object.hasOwn(s.actors,a.actor)) errors.push(`undeclared actor ${a.actor}`);
+      if(a) { for(const k of Object.keys(t.input)) if(!Object.hasOwn(a.input,k)) errors.push(`undeclared input ${k}`); for(const k of Object.keys(a.output)) if(!Object.hasOwn(a.output,k)) errors.push(`output contract mismatch ${k}`); for(const ty of a.semantic_types) if(!s.nominal_types.includes(ty)) errors.push(`undeclared semantic type ${ty}`); }
+      for(const v of t.allowed_values) if(!Object.hasOwn(s.values,v)) errors.push(`undeclared value ${v}`);
+      for(const ty of t.allowed_types) if(!s.nominal_types.includes(ty)) errors.push(`undeclared type ${ty}`);
+      if(type==="security"||type==="e2e"||type==="smoke"||type==="system") { const auth=s.actions.find(x=>x.id==="login.validate_passkey"); if(auth&&!auth.depends_on?.includes("login.receive_passkey")) errors.push("passkey validation dependency is not enforced"); const terminal=s.actions.find(x=>x.id==="gateway.return_authenticated_result"); if(terminal&&!terminal.depends_on?.includes("web.receive_passkey_route")) errors.push("terminal authentication route is not guarded"); }
+      return {id:`run.${t.id}`,type:t.type,skill:t.skill,status:errors.length?"failed":"passed",action_id:t.action_id,actor:t.target_actor,assertions,evidence:{intent:s.intent,action:a,expected:t.expected,contract},metrics:{assertions:assertions.length,duration_ms:0},errors,generated_from:s.id}}
   };
 }
 export const SKILLS=Object.fromEntries(CANONICAL_TEST_TYPES.map(t=>[t,makeSkill(t)])) as Record<CanonicalTestType,TestSkill>;
