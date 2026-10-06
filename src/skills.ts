@@ -10,7 +10,7 @@ function makeSkill(type:CanonicalTestType):TestSkill {
     generate:(s,i)=>{const a=s.actions[i];return {id:`${type}.${a.id}`,type,skill:`ubiq.skill.${type}`,action_id:a.id,action_index:i,target_actor:a.actor,input:structuredClone(a.input),expected:{action_reached:a.id,actor:a.actor,output_keys:Object.keys(a.output),type,depends_on:a.depends_on??[]},allowed_values:Object.keys(s.values),allowed_types:s.nominal_types}},
     execute:(t,s)=>{const a=s.actions[t.action_index];const assertions=[...contract.invariants,"action exists","actor is declared","input/output keys match contract","fixture references are declared","semantic types are declared"];const errors:string[]=[];
       if(!a||a.id!==t.action_id) errors.push("action is not the declared action");
-      if(a&&!Object.hasOwn(s.actors,a.actor)) errors.push(`undeclared actor ${a.actor}`);
+      if(a&&!Object.values(s.actors).some(actor=>actor.id===a.actor)) errors.push(`undeclared actor ${a.actor}`);
       if(a) { for(const k of Object.keys(t.input)) if(!Object.hasOwn(a.input,k)) errors.push(`undeclared input ${k}`); for(const k of Object.keys(a.output)) if(!Object.hasOwn(a.output,k)) errors.push(`output contract mismatch ${k}`); for(const ty of a.semantic_types) if(!s.nominal_types.includes(ty)) errors.push(`undeclared semantic type ${ty}`); }
       for(const v of t.allowed_values) if(!Object.hasOwn(s.values,v)) errors.push(`undeclared value ${v}`);
       for(const ty of t.allowed_types) if(!s.nominal_types.includes(ty)) errors.push(`undeclared type ${ty}`);
