@@ -6,6 +6,7 @@ import {verifyTrajectory} from "./engine.ts";
 import {scenarioTrajectory} from "./trajectory.ts";
 import {EvidenceCollector} from "./evidence.ts";
 import {HttpRuntimeAdapter, WebSocketRuntimeAdapter} from "./runtime.ts";
+import {RUNTIME_CONFORMANCE_CASES, validateRuntimeConformanceMatrix} from "./runtime-conformance.ts";
 
 const root = "examples/2FA-passwordless";
 const scenario = await loadScenario(root);
@@ -126,6 +127,8 @@ const expectFailure = async (label:string, result:Promise<{ok:boolean;error?:str
 };
 
 try {
+  const matrixErrors = validateRuntimeConformanceMatrix();
+  if (matrixErrors.length) throw new Error(matrixErrors.join("\n"));
   const config = await loadRuntimeConfig(root+"/runtime/runtime.example.json");
   const configErrors = validateRuntimeConfig(config, runtimeActionIds);
   if (configErrors.length) throw new Error(configErrors.join("\n"));
@@ -141,14 +144,18 @@ try {
   const http = new HttpRuntimeAdapter({defaultTimeoutMs: 100});
   const statusFailure = await expectFailure("HTTP unexpected status", http.execute(action, {values: scenario.values, state: {}}, new EvidenceCollector()));
   const statusBinding = {protocol:"http" as const, method:"POST" as const, url:"http://127.0.0.1:"+httpAddress.port+"/status-500", expect_status:[200], timeout_ms:100};
-  const statusResult = await new HttpRuntimeAdapter({bindings:{[action.id]:statusBinding}}).execute(action,{values:scenario.values,state:{}},new EvidenceCollector());
+  const statusContext = {values:scenario.values, state:{} as Record<string,unknown>};
+  const statusResult = await new HttpRuntimeAdapter({bindings:{[action.id]:statusBinding}}).execute(action,statusContext,new EvidenceCollector());
   if (statusResult.ok || !statusFailure.error) throw new Error("HTTP status conformance setup failed");
-  const timeoutResult = await new HttpRuntimeAdapter({bindings:{[action.id]:{protocol:"http",method:"POST",url:"http://127.0.0.1:"+httpAddress.port+"/timeout",timeout_ms:25}}}).execute(action,{values:scenario.values,state:{}},new EvidenceCollector());
+  const timeoutContext = {values:scenario.values, state:{} as Record<string,unknown>};
+  const timeoutResult = await new HttpRuntimeAdapter({bindings:{[action.id]:{protocol:"http",method:"POST",url:"http://127.0.0.1:"+httpAddress.port+"/timeout",timeout_ms:25}}}).execute(action,timeoutContext,new EvidenceCollector());
   if (timeoutResult.ok || !timeoutResult.error?.includes("timeout")) throw new Error("HTTP timeout conformance failed");
+  if (Object.keys(timeoutContext.state).length !== 0) throw new Error("timed-out HTTP action mutated state");
   const missingBinding = await expectFailure("missing runtime binding", http.execute(action,{values:scenario.values,state:{}},new EvidenceCollector()));
   if (!missingBinding.error?.includes("missing HTTP runtime binding")) throw new Error("missing binding did not fail closed");
   if (Object.keys(statusResult.output).length !== 0) throw new Error("failed HTTP action produced output");
   if (Object.keys(timeoutResult.output).length !== 0) throw new Error("timed-out HTTP action produced output");
+  if (Object.keys(statusContext.state).length !== 0) throw new Error("failed HTTP status mutated state");
 
   const wsBase = "ws://127.0.0.1:"+websocketAddress.port;
   const multiCollector = new EvidenceCollector();
@@ -165,7 +172,7 @@ try {
   const transportResult = await expectFailure("WebSocket transport failure", new WebSocketRuntimeAdapter({bindings:{[action.id]:{protocol:"websocket",url:"ws://127.0.0.1:1",timeout_ms:250,receive:{timeout_ms:250,messages:1}}}}).execute(action,{values:scenario.values,state:{}},new EvidenceCollector()));
   if (!transportResult.error) throw new Error("WebSocket transport failure missing error");
 
-  console.log(JSON.stringify({ok:true,scenario:scenario.id,conformance:{http:["success","unexpected_status","timeout","missing_binding","fail_closed_state"],websocket:["success","multi_message","close_before_receive","close_before_open","transport_error"]},trajectory:{actions:trajectory.runtime.results.length,matched:trajectory.match.matched},negative_checks:trajectory.negative.length},null,2));
+  console.log(JSON.stringify({ok:true,scenario:scenario.id,conformance:{cases:RUNTIME_CONFORMANCE_CASES.length,http:["success","unexpected_status","timeout","missing_binding","fail_closed_state"],websocket:["success","multi_message","close_before_receive","close_before_open","transport_error"]},trajectory:{actions:trajectory.runtime.results.length,matched:trajectory.match.matched},negative_checks:trajectory.negative.length},null,2));
 } finally {
   await Promise.all([new Promise<void>(resolve=>httpServer.close(()=>resolve())),new Promise<void>(resolve=>websocketServer.close(()=>resolve()))]);
 }
