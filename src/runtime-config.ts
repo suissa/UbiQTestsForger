@@ -35,7 +35,7 @@ export function validateRuntimeConfig(config:RuntimeConfig,actionIds:string[]):s
       if(binding.expect_status!==undefined&&(!Array.isArray(binding.expect_status)||binding.expect_status.some(status=>!Number.isInteger(status)||status<100||status>599)))
         errors.push("invalid expected HTTP status for "+id);
     }
-    const timeoutMs=binding.timeout_ms;
+    for(const field of ["semantic_types","input_fields","output_fields"] as const){\n      const value=binding[field];\n      if(value!==undefined&&(!Array.isArray(value)||value.some(item=>typeof item!=="string"||item.length===0))) errors.push("invalid "+field+" for "+id);\n      else if(Array.isArray(value)&&new Set(value).size!==value.length) errors.push("duplicate "+field+" for "+id);\n    }\n    const timeoutMs=binding.timeout_ms;
     if(timeoutMs!==undefined&&(!Number.isFinite(timeoutMs)||timeoutMs<=0))errors.push("invalid timeout for "+id);
     if(binding.protocol==="websocket"&&binding.receive){
       if(binding.receive.timeout_ms!==undefined&&(!Number.isFinite(binding.receive.timeout_ms)||binding.receive.timeout_ms<=0))errors.push("invalid WebSocket receive timeout for "+id);
