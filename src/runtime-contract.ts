@@ -59,3 +59,19 @@ export function buildRuntimeContract(scenario: string, actions: import("./types.
   });
   return {scenario, required_actions: actions.map(action => action.id), entries, valid: entries.every(entry => entry.valid) && validationErrors.length === 0, errors: [...validationErrors, ...entries.flatMap(entry => entry.errors.filter(error => !validationErrors.includes(error)))]};
 }
+
+
+export function validateRuntimeSemanticCompatibility(action:import("./types.ts").Action,binding:RuntimeBinding):string[] {
+  const errors:string[]=[];
+  const inputFields=Object.keys(action.input);
+  const outputFields=Object.keys(action.output);
+  if (binding.protocol==="http"&&["GET","DELETE"].includes(binding.method??"")&&inputFields.length>0)
+    errors.push("runtime transport cannot carry declared input fields for "+action.id);
+  if (binding.semantic_types!==undefined&&!sameSet(action.semantic_types,binding.semantic_types))
+    errors.push("runtime semantic types do not match action semantic types for "+action.id);
+  if (binding.input_fields!==undefined&&!sameSet(inputFields,binding.input_fields))
+    errors.push("runtime input fields do not match action input fields for "+action.id);
+  if (binding.output_fields!==undefined&&!sameSet(outputFields,binding.output_fields))
+    errors.push("runtime output fields do not match action output fields for "+action.id);
+  return errors;
+}
