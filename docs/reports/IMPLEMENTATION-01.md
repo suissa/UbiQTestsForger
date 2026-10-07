@@ -612,3 +612,61 @@ The semantic coverage engine now distinguishes Intent, Actor, Action, Transition
 The runtime boundary is explicit: fixture declarations generate inputs, while RuntimeAdapter execution produces the evidence used for trajectory verification.
 
 With issues #61–#72 completed, the repository has moved from a deterministic test-skill forge toward an executable Intent Trajectory Verification Engine.
+
+
+## 18. Phase 03 — Runtime Boundary and RuntimeConformance
+
+Phase 03 establishes a transport-neutral real-runtime boundary.
+
+The runtime contract now has two production-facing adapters:
+
+- `HttpRuntimeAdapter`
+- `WebSocketRuntimeAdapter`
+
+Both implement the same `RuntimeAdapter` interface. The semantic trajectory therefore does not depend on a transport-specific execution model.
+
+The external runtime configuration remains separate from the semantic scenario. Bindings contain protocol, endpoint, timeout and expected-response information, while the scenario continues to define the semantic action and trajectory.
+
+The WebSocket adapter now honors `receive.messages`. A binding requesting one message returns the message object directly; a binding requesting multiple messages returns a `messages` collection. The adapter does not mark the action successful until the required number of messages has been received.
+
+Failure is fail-closed:
+
+- missing binding fails;
+- missing environment variables fail;
+- unexpected HTTP status fails;
+- HTTP timeout fails;
+- WebSocket transport error fails;
+- WebSocket closure before opening fails;
+- WebSocket closure before the required messages are received fails;
+- failed operations emit explicit error evidence;
+- failed operations do not emit successful state evidence.
+
+The canonical runtime integration is now also a `RuntimeConformance` matrix. The local dependency-free fixture verifies:
+
+```
+HTTP
+  success
+  unexpected status
+  timeout
+  missing binding
+  failed-state/output guard
+
+WebSocket
+  success
+  multi-message receive
+  close before receive
+  close before open
+  transport error
+```
+
+This is intentionally transport-neutral at the contract level: HTTP and WebSocket are two realizations of the same runtime obligations—execute the declared action, produce evidence, update state only after success, and fail closed when the boundary cannot satisfy the declaration.
+
+The canonical CI workflow runs the conformance gate after the 272-case semantic matrix and structural check:
+
+```text
+npm test
+  -> npm run check
+  -> npm run test:runtime
+```
+
+The next runtime extensions can therefore add transports or richer boundary behaviors without changing trajectory semantics.
