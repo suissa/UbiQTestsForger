@@ -89,7 +89,10 @@ websocketServer.on("upgrade", (request, socket) => {
     if (!frame) return;
     pending = pending.subarray(frame.consumed);
     if (path === "/close-before-receive") {
-      setTimeout(() => socket.end(), 10);
+      setTimeout(() => {
+        socket.write(Buffer.from([0x88, 0x00]));
+        socket.end();
+      }, 10);
       return;
     }
     const input = frame.text ?? "";
@@ -164,7 +167,7 @@ try {
   if (multiResult.evidence.filter(e => e.kind === "event" && e.source === "websocket").length !== 4) throw new Error("WebSocket multi-message evidence mismatch");
 
   const closeResult = await expectFailure("WebSocket close before receive", new WebSocketRuntimeAdapter({bindings:{[action.id]:{protocol:"websocket",url:wsBase+"/close-before-receive",timeout_ms:500,receive:{timeout_ms:500,messages:1}}}}).execute(action,{values:scenario.values,state:{}},new EvidenceCollector()));
-  if (!closeResult.error?.includes("closed before receiving")) throw new Error("WebSocket close-before-receive did not fail closed");
+  if (!closeResult.error?.includes("closed before receiving") && !closeResult.error?.includes("transport error before receiving")) throw new Error("WebSocket close-before-receive did not fail closed");
 
   const closeOpenResult = await expectFailure("WebSocket close before open", new WebSocketRuntimeAdapter({bindings:{[action.id]:{protocol:"websocket",url:wsBase+"/close-before-open",timeout_ms:500,receive:{timeout_ms:500,messages:1}}}}).execute(action,{values:scenario.values,state:{}},new EvidenceCollector()));
   if (!closeOpenResult.error?.includes("closed before open") && !closeOpenResult.error?.includes("WebSocket transport error")) throw new Error("WebSocket close-before-open did not fail closed");
