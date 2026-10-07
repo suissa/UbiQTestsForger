@@ -43,3 +43,24 @@ npm run check
 ```
 
 The YAML files are JSON-subset YAML 1.2 so they remain dependency-free under Node 24.
+
+
+## Real runtime verification
+
+Trajectory verification can execute against a real HTTP or WebSocket runtime. Runtime configuration is external to the scenario so URLs and credentials are never embedded in the semantic contract.
+
+Use the supplied template as a starting point:
+
+```bash
+cp examples/2FA-passwordless/runtime/runtime.example.json /tmp/ubiq-runtime.json
+```
+
+Set `UBIQ_RUNTIME_BASE_URL` in the environment and run:
+
+```bash
+node --experimental-strip-types src/cli.ts trajectory examples/2FA-passwordless /tmp/ubiq-runtime.json
+```
+
+The adapter is fail-closed: a missing binding, missing environment variable, timeout, transport failure, malformed response, or unexpected HTTP status produces explicit runtime evidence and cannot be reported as a satisfied trajectory.
+
+HTTP and WebSocket credentials are redacted from evidence. The in-memory adapter remains the deterministic test double and is never silently selected when an external runtime configuration is supplied.
