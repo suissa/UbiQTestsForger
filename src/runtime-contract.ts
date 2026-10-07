@@ -36,9 +36,12 @@ export function validateRuntimeSemanticCompatibility(action:Action,binding:Runti
 }
 
 export function buildRuntimeContract(scenario:string,actions:Action[]|string[],config:RuntimeConfig,validationErrors:string[]=[]):RuntimeContract {
-  const declaredActions:Action[]=typeof actions[0]==="string"
-    ? actions.map(id=>({id:String(id),actor:"",input:{},output:{},semantic_types:[]})) as Action[]
-    : actions as Action[];
+  const configuredActions=(config as RuntimeConfig & {actions?:Action[]}).actions;
+  const declaredActions:Action[]=configuredActions
+    ? configuredActions.filter(action=>actions.includes(action.id))
+    : typeof actions[0]==="string"
+      ? actions.map(id=>({id:String(id),actor:"",input:{},output:{},semantic_types:[]})) as Action[]
+      : actions as Action[];
   const entries=declaredActions.map(action=>{
     const binding=config.bindings?.[action.id];
     const input_fields=Object.keys(action.input);
