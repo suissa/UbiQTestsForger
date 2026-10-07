@@ -7,6 +7,7 @@ export interface RuntimeContractEntry {
   bound: boolean;
   protocol?: RuntimeBinding["protocol"];
   url?: string;
+  method?: RuntimeBinding["method"];
   valid: boolean;
   errors: string[];
 }
