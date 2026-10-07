@@ -1,6 +1,6 @@
 import {loadScenario} from "./scenario.ts";
 import {loadRuntimeConfig,adapterFor,validateRuntimeConfig} from "./runtime-config.ts";
-import {executeTests,generateTests,materialize,materializeTrajectory,validateGeneratedTests,verifyTrajectory} from "./engine.ts";
+import {executeTests,generateTests,materialize,materializeRuntimeContract,materializeTrajectory,validateGeneratedTests,verifyTrajectory} from "./engine.ts";
 import {scenarioTrajectory} from "./trajectory.ts";
 
 const [command,root="examples/2FA-passwordless",runtimeConfigPath]=process.argv.slice(2);
@@ -22,7 +22,8 @@ if(command==="check"){
     try{
       const config=await loadRuntimeConfig(runtimeConfigPath);
       const errors=validateRuntimeConfig(config,runtimeActionIds);
-      console.log(JSON.stringify({ok:errors.length===0,scenario:scenario.id,bindings:Object.keys(config.bindings??{}).length,errors},null,2));
+      const contract=await materializeRuntimeContract(root,scenario,config,errors);
+      console.log(JSON.stringify({ok:errors.length===0,scenario:scenario.id,bindings:Object.keys(config.bindings??{}).length,contract,errors},null,2));
       if(errors.length)process.exitCode=1
     }catch(error){
       console.error(error instanceof Error?error.message:String(error));
