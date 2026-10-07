@@ -137,6 +137,8 @@ try {
   const configErrors = validateRuntimeConfig(config, runtimeActionIds);
   if (configErrors.length) throw new Error(configErrors.join("\n"));
 
+  const trajectory = await verifyTrajectory(scenario, id => adapterFor(id, config));
+
   conformance.mark("http.success");
   const failed = trajectory.runtime.results.filter(run => !run.ok);
   const httpEvidence = trajectory.runtime.evidence.filter(event => event.kind === "event" && event.source === "http");
