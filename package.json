@@ -10,7 +10,8 @@
     "generate": "node --experimental-strip-types src/cli.ts generate examples/2FA-passwordless",
     "test": "node --experimental-strip-types src/cli.ts run examples/2FA-passwordless",
     "check": "node --experimental-strip-types src/cli.ts check examples/2FA-passwordless",
-    "test:runtime": "node --experimental-strip-types src/runtime-integration.ts"
+    "test:runtime": "node --experimental-strip-types src/runtime-integration.ts",
+    "check:runtime": "node --experimental-strip-types src/cli.ts runtime-check examples/2FA-passwordless examples/2FA-passwordless/runtime/runtime.example.json"
   },
   "exports": {
     ".": "./src/index.ts",
