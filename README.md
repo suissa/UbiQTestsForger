@@ -40,6 +40,7 @@ No runtime dependencies are required.
 ```bash
 npm test
 npm run check
+npm run check:runtime
 ```
 
 The YAML files are JSON-subset YAML 1.2 so they remain dependency-free under Node 24.
@@ -86,3 +87,5 @@ The canonical runtime gate now exercises the transport boundary as a conformance
 
 The conformance fixture is local and dependency-free. It does not silently fall back to the in-memory adapter.
 The matrix is executable, not descriptive-only. Each canonical conformance ID is registered in `src/runtime-conformance.ts`, and `test:runtime` marks every case as it executes it. The gate fails if a declared case is unknown, duplicated, or not executed, preventing the contract from drifting away from its implementation.
+
+`runtime-check` performs a fail-closed preflight of the external runtime contract: required trajectory bindings, protocol, URL, method, status, timeout and WebSocket message-count semantics are validated before any network call. Extra bindings are rejected so the runtime manifest cannot silently diverge from the declared trajectory.
