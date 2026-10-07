@@ -1,5 +1,6 @@
 import {mkdir,writeFile} from "node:fs/promises";import {join} from "node:path";import {CANONICAL_TEST_TYPES,SKILLS} from "./skills.ts";import type {Scenario,TestCase,TestRun} from "./types.ts";import {buildBehaviorFlow} from "./behavior-flow.ts";import {executeFlow,InMemoryRuntimeAdapter} from "./runtime.ts";import {matchTrajectory} from "./matcher.ts";import {semanticCoverage} from "./coverage.ts";import {scenarioTrajectory} from "./trajectory.ts";import {openTrajectoryProjection} from "./projection.ts";import {verifyForbiddenPaths} from "./negative.ts";
 import {buildRuntimeContract} from "./runtime-contract.ts";
+import {buildRuntimeOutputContract} from "./runtime-output.ts";
 import type {RuntimeConfig} from "./runtime-config.ts";
 export function generateTests(s:Scenario):TestCase[]{const out:TestCase[]=[];for(const type of CANONICAL_TEST_TYPES)for(let i=0;i<s.actions.length;i++)out.push(SKILLS[type].generate(s,i));return out}
 export function executeTests(s:Scenario,t:TestCase[]):TestRun[]{return t.map(x=>SKILLS[x.type].execute(x,s))}
@@ -9,7 +10,7 @@ export async function verifyTrajectory(s:Scenario,adapterFactory?: (actionId:str
 export async function materialize(root:string,s:Scenario,t:TestCase[],r:TestRun[]){await mkdir(join(root,"tests","generated"),{recursive:true});await writeFile(join(root,"tests","generated","manifest.json"),JSON.stringify({scenario:s.id,count:t.length,canonical_types:CANONICAL_TEST_TYPES,actions:s.actions.map(a=>a.id),status:r.every(x=>x.status==="passed")?"passed":"failed"},null,2));for(const type of CANONICAL_TEST_TYPES)await writeFile(join(root,"tests","generated",type+".json"),JSON.stringify({skill:SKILLS[type].id,purpose:SKILLS[type].purpose,when:SKILLS[type].when,contract:SKILLS[type].contract,cases:t.filter(x=>x.type===type),results:r.filter(x=>x.type===type)},null,2));await writeFile(join(root,"tests","generated","result.json"),JSON.stringify({scenario:s.id,total:r.length,passed:r.filter(r=>r.status==="passed").length,failed:r.filter(r=>r.status==="failed").length,runs:r},null,2))}
 export async function materializeRuntimeContract(root:string,scenario:Scenario,config:RuntimeConfig,validationErrors:string[]){
   const actionIds=scenarioTrajectory(scenario).nodes.flatMap(node=>node.kind==="hope"&&node.target.includes(".")?[node.target]:[]);
-  const contract=buildRuntimeContract(scenario.id,actionIds,config,validationErrors);
+  const contract=buildRuntimeContract(scenario.id,actionIds,config,validationErrors);\n  const outputContracts=actionIds.map(id=>{const action=scenario.actions.find(item=>item.id===id);return action?buildRuntimeOutputContract(action,scenario.values):undefined}).filter(Boolean);\n  await writeFile(join(root,"tests","trajectory","runtime-output-contract.json"),JSON.stringify(outputContracts,null,2));
   await mkdir(join(root,"tests","trajectory"),{recursive:true});
   await writeFile(join(root,"tests","trajectory","runtime-contract.json"),JSON.stringify(contract,null,2));
   return contract;
