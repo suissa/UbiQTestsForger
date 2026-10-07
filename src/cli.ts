@@ -22,6 +22,7 @@ if(command==="check"){
     try{
       const config=await loadRuntimeConfig(runtimeConfigPath);
       const errors=validateRuntimeConfig(config,runtimeActionIds);
+      (config as any).actions=scenario.actions;
       const contract=await materializeRuntimeContract(root,scenario,config,errors);
       console.log(JSON.stringify({ok:errors.length===0,scenario:scenario.id,bindings:Object.keys(config.bindings??{}).length,contract,errors},null,2));
       if(errors.length)process.exitCode=1
