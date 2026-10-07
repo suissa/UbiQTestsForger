@@ -7,6 +7,7 @@ import {scenarioTrajectory} from "./trajectory.ts";
 import {EvidenceCollector} from "./evidence.ts";
 import {HttpRuntimeAdapter, WebSocketRuntimeAdapter} from "./runtime.ts";
 import {RUNTIME_CONFORMANCE_CASES, createRuntimeConformanceTracker, validateRuntimeConformanceMatrix} from "./runtime-conformance.ts";
+import {validateRuntimeSemanticCompatibility} from "./runtime-contract.ts";
 
 const root = "examples/2FA-passwordless";
 const scenario = await loadScenario(root);
@@ -134,7 +135,7 @@ try {
   const conformance = createRuntimeConformanceTracker();
   if (matrixErrors.length) throw new Error(matrixErrors.join("\n"));
   const config = await loadRuntimeConfig(root+"/runtime/runtime.example.json");
-  const configErrors = validateRuntimeConfig(config, runtimeActionIds);
+  const semanticAction = scenario.actions.find(item => item.id === "login.validate_passkey");\n  if (!semanticAction) throw new Error("semantic conformance action missing");\n  const semanticMatch = validateRuntimeSemanticCompatibility(semanticAction, {protocol:"http",method:"POST",url:"http://example.test",semantic_types:["PasskeyCredential","SessionId"],input_fields:["passkey","session_id"],output_fields:["authenticated"]});\n  if (semanticMatch.length) throw new Error("runtime semantic match failed: "+semanticMatch.join("; "));\n  const semanticMismatch = validateRuntimeSemanticCompatibility(semanticAction, {protocol:"http",method:"POST",url:"http://example.test",semantic_types:["WhatsAppNumber"]});\n  if (!semanticMismatch.some(error => error.includes("semantic types"))) throw new Error("runtime semantic mismatch was not rejected");\n  const semanticTransport = validateRuntimeSemanticCompatibility(semanticAction, {protocol:"http",method:"GET",url:"http://example.test"});\n  if (!semanticTransport.some(error => error.includes("transport"))) throw new Error("runtime semantic transport mismatch was not rejected");\n  const configErrors = validateRuntimeConfig(config, runtimeActionIds);
   if (configErrors.length) throw new Error(configErrors.join("\n"));
 
   const trajectory = await verifyTrajectory(scenario, id => adapterFor(id, config));
