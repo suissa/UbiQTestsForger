@@ -1,0 +1,4 @@
+import {readFile} from "node:fs/promises";import type {RuntimeBinding} from "./types.ts";import {HttpRuntimeAdapter,WebSocketRuntimeAdapter, type RuntimeAdapter, type RuntimeAdapterOptions} from "./runtime.ts";
+export interface RuntimeConfig{bindings:Record<string,RuntimeBinding>;default_timeout_ms?:number}
+export async function loadRuntimeConfig(path:string):Promise<RuntimeConfig>{return JSON.parse(await readFile(path,"utf8")) as RuntimeConfig}
+export function adapterFor(actionId:string,config:RuntimeConfig):RuntimeAdapter{const binding=config.bindings[actionId];if(!binding)throw new Error("missing runtime binding for "+actionId);const options:RuntimeAdapterOptions={bindings:config.bindings,defaultTimeoutMs:config.default_timeout_ms};return binding.protocol==="http"?new HttpRuntimeAdapter(options):new WebSocketRuntimeAdapter(options)}
