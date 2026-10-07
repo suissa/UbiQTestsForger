@@ -552,3 +552,63 @@ Implementation-01 establishes a working baseline for UbiQ Tests Forger:
 - successful canonical CI run.
 
 The implementation is therefore ready to serve as the executable foundation for the next UbiQ/Intent Trajectory layer.
+
+
+## 17. Phase 02 — Intent Trajectory Verification Engine
+
+The next architectural layer was implemented through issues #61–#72.
+
+The 12 issues define and implement:
+
+- formal semantic operators: →, ∧, ¬, * and ⊨;
+- typed Intent Trajectory AST and parser;
+- BehaviorFlow graph with dependency and terminal semantics;
+- immutable runtime evidence for events and state;
+- declared-vs-observed trajectory matching;
+- forbidden-path verification;
+- semantic coverage;
+- RuntimeAdapter and deterministic InMemoryRuntimeAdapter;
+- canonical 2FA trajectory execution;
+- SemanticAtomicBehavior validation/healing pipeline;
+- trajectory/coverage CLI commands and materialized reports;
+- OpenTrajectory-compatible JSON projection.
+
+The canonical trajectory is now represented in:
+
+`examples/2FA-passwordless/intent/trajectory.dsl`
+
+and includes the authentication ordering constraint:
+
+`login.receive_passkey → login.validate_passkey → web.receive_passkey_route → gateway.return_authenticated_result`
+
+The implementation deliberately separates:
+
+`Declared Trajectory ≠ Observed Trajectory`
+
+and only reports trajectory satisfaction when the observed event sequence matches the declared obligations.
+
+The new CLI commands are:
+
+```bash
+node --experimental-strip-types src/cli.ts trajectory examples/2FA-passwordless
+node --experimental-strip-types src/cli.ts coverage examples/2FA-passwordless
+```
+
+They materialize:
+
+```
+tests/trajectory/
+  declared.json
+  flow.json
+  evidence.json
+  match.json
+  coverage.json
+  negative.json
+  projection.json
+```
+
+The semantic coverage engine now distinguishes Intent, Actor, Action, Transition, Event, State, Dependency, Terminal, Channel, Failure, Recovery and Trajectory.
+
+The runtime boundary is explicit: fixture declarations generate inputs, while RuntimeAdapter execution produces the evidence used for trajectory verification.
+
+With issues #61–#72 completed, the repository has moved from a deterministic test-skill forge toward an executable Intent Trajectory Verification Engine.
