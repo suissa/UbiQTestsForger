@@ -1,0 +1,113 @@
+{
+  "default_timeout_ms": 5000,
+  "bindings": {
+    "gateway.receive_whatsapp_number": {
+      "protocol": "http",
+      "method": "POST",
+      "url": "${UBIQ_RUNTIME_BASE_URL}/gateway.receive_whatsapp_number",
+      "timeout_ms": 5000,
+      "expect_status": [
+        200,
+        201,
+        202,
+        204
+      ]
+    },
+    "gateway.validate_chat_number": {
+      "protocol": "http",
+      "method": "POST",
+      "url": "${UBIQ_RUNTIME_BASE_URL}/gateway.validate_chat_number",
+      "timeout_ms": 5000,
+      "expect_status": [
+        200,
+        201,
+        202,
+        204
+      ]
+    },
+    "gateway.check_whatsapp_exists": {
+      "protocol": "http",
+      "method": "POST",
+      "url": "${UBIQ_RUNTIME_BASE_URL}/gateway.check_whatsapp_exists",
+      "timeout_ms": 5000,
+      "expect_status": [
+        200,
+        201,
+        202,
+        204
+      ]
+    },
+    "login.create_magic_link": {
+      "protocol": "http",
+      "method": "POST",
+      "url": "${UBIQ_RUNTIME_BASE_URL}/login.create_magic_link",
+      "timeout_ms": 5000,
+      "expect_status": [
+        200,
+        201,
+        202,
+        204
+      ]
+    },
+    "login.send_magic_link": {
+      "protocol": "http",
+      "method": "POST",
+      "url": "${UBIQ_RUNTIME_BASE_URL}/login.send_magic_link",
+      "timeout_ms": 5000,
+      "expect_status": [
+        200,
+        201,
+        202,
+        204
+      ]
+    },
+    "login.receive_passkey": {
+      "protocol": "http",
+      "method": "POST",
+      "url": "${UBIQ_RUNTIME_BASE_URL}/login.receive_passkey",
+      "timeout_ms": 5000,
+      "expect_status": [
+        200,
+        201,
+        202,
+        204
+      ]
+    },
+    "login.validate_passkey": {
+      "protocol": "http",
+      "method": "POST",
+      "url": "${UBIQ_RUNTIME_BASE_URL}/login.validate_passkey",
+      "timeout_ms": 5000,
+      "expect_status": [
+        200,
+        201,
+        202,
+        204
+      ]
+    },
+    "web.receive_passkey_route": {
+      "protocol": "http",
+      "method": "POST",
+      "url": "${UBIQ_RUNTIME_BASE_URL}/web.receive_passkey_route",
+      "timeout_ms": 5000,
+      "expect_status": [
+        200,
+        201,
+        202,
+        204
+      ]
+    },
+    "gateway.return_authenticated_result": {
+      "protocol": "http",
+      "method": "POST",
+      "url": "${UBIQ_RUNTIME_BASE_URL}/gateway.return_authenticated_result",
+      "timeout_ms": 5000,
+      "expect_status": [
+        200,
+        201,
+        202,
+        204
+      ]
+    }
+  }
+}
