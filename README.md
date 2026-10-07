@@ -61,6 +61,27 @@ Set `UBIQ_RUNTIME_BASE_URL` in the environment and run:
 node --experimental-strip-types src/cli.ts trajectory examples/2FA-passwordless /tmp/ubiq-runtime.json
 ```
 
-The adapter is fail-closed: a missing binding, missing environment variable, timeout, transport failure, malformed response, or unexpected HTTP status produces explicit runtime evidence and cannot be reported as a satisfied trajectory.
+The adapter is fail-closed: a missing binding, missing environment variable, timeout, transport failure, connection closure, or unexpected HTTP status produces explicit runtime evidence and cannot be reported as a satisfied trajectory. WebSocket bindings also honor `receive.messages`, allowing the runtime contract to require one or multiple received messages.
 
 HTTP and WebSocket credentials are redacted from evidence. The in-memory adapter remains the deterministic test double and is never silently selected when an external runtime configuration is supplied.
+
+
+### RuntimeConformance
+
+The canonical runtime gate now exercises the transport boundary as a conformance contract rather than only a happy-path fixture.
+
+`npm run test:runtime` validates:
+
+- HTTP success against the canonical trajectory;
+- unexpected HTTP status;
+- HTTP timeout;
+- missing HTTP binding;
+- failed HTTP actions do not mutate runtime state or return output;
+- WebSocket success with `open -> send -> receive` evidence;
+- WebSocket multi-message reception through `receive.messages`;
+- WebSocket close before a required message;
+- WebSocket close before opening;
+- WebSocket transport failure;
+- explicit error evidence on failed transport operations.
+
+The conformance fixture is local and dependency-free. It does not silently fall back to the in-memory adapter.
