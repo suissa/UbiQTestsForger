@@ -1,10 +1,12 @@
 import {loadScenario} from "./scenario.ts";
 import {loadRuntimeConfig,adapterFor,validateRuntimeConfig} from "./runtime-config.ts";
 import {executeTests,generateTests,materialize,materializeTrajectory,validateGeneratedTests,verifyTrajectory} from "./engine.ts";
+import {scenarioTrajectory} from "./trajectory.ts";
 
 const [command,root="examples/2FA-passwordless"]=process.argv.slice(2);
 const scenario=await loadScenario(root);
 const tests=generateTests(scenario);
+const runtimeActionIds=scenarioTrajectory(scenario).nodes.flatMap(node=>node.kind==="hope"&&node.target.includes(".")?[node.target]:[]);
 
 if(command==="check"){
   const errors=validateGeneratedTests(scenario,tests);
@@ -20,7 +22,7 @@ if(command==="check"){
   else{
     try{
       const config=await loadRuntimeConfig(configPath);
-      const errors=validateRuntimeConfig(config,scenario.actions.map(a=>a.id));
+      const errors=validateRuntimeConfig(config,runtimeActionIds);
       console.log(JSON.stringify({ok:errors.length===0,scenario:scenario.id,bindings:Object.keys(config.bindings??{}).length,errors},null,2));
       if(errors.length)process.exitCode=1
     }catch(error){
