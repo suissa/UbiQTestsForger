@@ -2,9 +2,12 @@ import {createServer, type IncomingMessage, type ServerResponse} from "node:http
 import {loadScenario} from "./scenario.ts";
 import {loadRuntimeConfig, adapterFor, validateRuntimeConfig} from "./runtime-config.ts";
 import {verifyTrajectory} from "./engine.ts";
+import {scenarioTrajectory} from "./trajectory.ts";
 
 const root = "examples/2FA-passwordless";
 const scenario = await loadScenario(root);
+const declaredTrajectory = scenarioTrajectory(scenario);
+const runtimeActionIds = declaredTrajectory.nodes.flatMap(node => node.kind === "hope" && node.target.includes(".") ? [node.target] : []);
 
 const server = createServer(async (request: IncomingMessage, response: ServerResponse) => {
   if (request.method !== "POST") {
@@ -37,7 +40,7 @@ process.env.UBIQ_RUNTIME_BASE_URL = `http://127.0.0.1:${address.port}`;
 
 try {
   const config = await loadRuntimeConfig(`${root}/runtime/runtime.example.json`);
-  const configErrors = validateRuntimeConfig(config, scenario.actions.map(action => action.id));
+  const configErrors = validateRuntimeConfig(config, runtimeActionIds);
   if (configErrors.length) throw new Error(configErrors.join("\n"));
 
   const result = await verifyTrajectory(scenario, actionId => adapterFor(actionId, config));
