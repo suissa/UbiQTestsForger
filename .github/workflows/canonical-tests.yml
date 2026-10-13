@@ -12,6 +12,7 @@ jobs:
         with:
           node-version: 24
       - run: npm test
+      - run: npm run test:actions
       - run: npm run check
       - run: npm run check:runtime
       - run: npm run test:runtime
