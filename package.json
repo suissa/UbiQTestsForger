@@ -12,7 +12,7 @@
     "check": "node --experimental-strip-types src/cli.ts check examples/2FA-passwordless",
     "test:runtime": "node --experimental-strip-types src/runtime-integration.ts",
     "check:runtime": "node --experimental-strip-types src/cli.ts runtime-check examples/2FA-passwordless examples/2FA-passwordless/runtime/runtime.example.json",
-    "test:actions": "node --experimental-strip-types examples/2FA-passwordless/implementations/actions/gateway/return_authenticated_result.test.ts"
+    "test:actions": "node --experimental-strip-types examples/2FA-passwordless/implementations/actions/gateway/return_authenticated_result.test.ts && node --experimental-strip-types examples/2FA-passwordless/implementations/actions/web/receive_passkey_route.test.ts"
   },
   "exports": {
     ".": "./src/index.ts",
