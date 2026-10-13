@@ -144,6 +144,7 @@ try {
   const failed = trajectory.runtime.results.filter(run => !run.ok);
   const httpEvidence = trajectory.runtime.evidence.filter(event => event.kind === "event" && event.source === "http");
   if (!trajectory.match.matched) throw new Error("trajectory mismatch: "+trajectory.match.diagnostics.join("; "));
+  if (!trajectory.runtimeVerification.passed) throw new Error("runtime contract verification failed: "+trajectory.runtimeVerification.errors.join("; "));
   if (trajectory.negative.some(check => !check.passed)) throw new Error("negative trajectory verification failed");
   if (failed.length) throw new Error(failed.map(run => run.actionId+": "+(run.error ?? "runtime failure")).join("\n"));
   if (httpEvidence.length !== trajectory.runtime.results.length) throw new Error("HTTP evidence count mismatch");
