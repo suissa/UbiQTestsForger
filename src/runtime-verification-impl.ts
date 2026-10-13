@@ -16,7 +16,7 @@ export function verifyRuntimeContract(scenario:string, actions:Action[], results
     resultIds.add(result.actionId);
     if(!action){add("declared-action",result.actionId,false,"runtime returned an undeclared action");continue}
     const observed=evidence.filter(item=>item.actionId===result.actionId);
-    add("transport-evidence",result.actionId,observed.some(item=>item.kind==="event"),"requires observed transport event");
+    add(result.ok?"transport-evidence":"failure-evidence",result.actionId,result.ok?observed.some(item=>item.kind==="event"):observed.some(item=>item.kind==="error"),result.ok?"successful execution requires observed transport event":"failed execution requires error evidence");
     if(result.ok){
       add("output-contract",result.actionId,validateRuntimeOutput(action,result.output,values).length===0,"output must satisfy declared action contract");
       add("state-commit",result.actionId,Object.hasOwn(state,result.actionId),"successful execution must commit state");
