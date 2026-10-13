@@ -151,7 +151,8 @@ try {
   if (!semanticMismatch.some(error => error.includes("semantic types"))) throw new Error("runtime semantic mismatch was not rejected");
   const semanticTransport = validateRuntimeSemanticCompatibility(semanticAction, {protocol:"http",method:"GET",url:"http://example.test"});
   if (!semanticTransport.some(error => error.includes("transport"))) throw new Error("runtime semantic transport mismatch was not rejected");
-  const outputAction = scenario.actions.find(item => item.id === "login.validate_passkey");\n  if (!outputAction) throw new Error("runtime output contract action missing");
+  const outputAction = scenario.actions.find(item => item.id === "login.validate_passkey");
+  if (!outputAction) throw new Error("runtime output contract action missing");
   const outputContract = buildRuntimeOutputContract(outputAction, scenario.values);
   if (!outputContract.required_fields.includes("authenticated")) throw new Error("runtime output contract missing declared field");
   if (validateRuntimeOutput(outputAction, {authenticated: scenario.values.login_result} as Record<string,unknown>, scenario.values).length) throw new Error("runtime output contract rejected canonical output");
