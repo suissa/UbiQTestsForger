@@ -39,13 +39,13 @@ if(command==="check"){
     else{
       const result=await verifyTrajectory(scenario,id=>adapterFor(id,runtimeConfig));
       await materializeTrajectory(root,result);
-      console.log(JSON.stringify(command==="coverage"?{scenario:scenario.id,coverage:result.coverage}:{scenario:scenario.id,intent:result.trajectory.intent,matched:result.match.matched,declared:result.match.declared,observed:result.match.observed,diagnostics:result.match.diagnostics,negative:result.negative},null,2));
-      if(!result.match.matched||result.negative.some(x=>!x.passed))process.exitCode=1
+      console.log(JSON.stringify(command==="coverage"?{scenario:scenario.id,coverage:result.coverage}:{scenario:scenario.id,intent:result.trajectory.intent,matched:result.match.matched,declared:result.match.declared,observed:result.match.observed,diagnostics:result.match.diagnostics,runtimeVerification:result.runtimeVerification,negative:result.negative},null,2));
+      if(!result.match.matched||!result.runtimeVerification.passed||result.negative.some(x=>!x.passed))process.exitCode=1
     }
   }else{
     const result=await verifyTrajectory(scenario);
     await materializeTrajectory(root,result);
     console.log(JSON.stringify(command==="coverage"?{scenario:scenario.id,coverage:result.coverage}:{scenario:scenario.id,intent:result.trajectory.intent,matched:result.match.matched,declared:result.match.declared,observed:result.match.observed,diagnostics:result.match.diagnostics,negative:result.negative},null,2));
-    if(!result.match.matched||result.negative.some(x=>!x.passed))process.exitCode=1
+    if(!result.match.matched||!result.runtimeVerification.passed||result.negative.some(x=>!x.passed))process.exitCode=1
   }
 }else console.log("Usage: node --experimental-strip-types src/cli.ts <generate|run|check|runtime-check|trajectory|coverage> <example-root> [runtime-config]");
