@@ -15,6 +15,13 @@ const declaredTrajectory = scenarioTrajectory(scenario);
 const runtimeActionIds = declaredTrajectory.nodes.flatMap(node => node.kind === "hope" && node.target.includes(".") ? [node.target] : []);
 const action = scenario.actions[0];
 
+function resolveFixtureOutput(value: any): any {
+  if (value && typeof value === "object" && typeof value.$ref === "string" && value.$ref.startsWith("values.")) return scenario.values[value.$ref.slice(7)];
+  if (Array.isArray(value)) return value.map(resolveFixtureOutput);
+  if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, resolveFixtureOutput(item)]));
+  return value;
+}
+
 const httpServer = createServer(async (request: IncomingMessage, response: ServerResponse) => {
   if (request.method !== "POST") {
     response.writeHead(405, {"content-type": "application/json"});
@@ -32,7 +39,8 @@ const httpServer = createServer(async (request: IncomingMessage, response: Serve
   }
   const status = path === "/status-500" ? 500 : 200;
   response.writeHead(status, {"content-type": "application/json"});
-  response.end(JSON.stringify({action_id: path.slice(1), received: body.length > 0, runtime: "local-http-fixture"}));
+  const target = scenario.actions.find(item => item.id === path.slice(1));
+  response.end(JSON.stringify(target ? resolveFixtureOutput(target.output) : {action_id: path.slice(1), received: body.length > 0, runtime: "local-http-fixture"}));
 });
 
 function websocketFrame(text: string): Buffer {
