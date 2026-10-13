@@ -13,7 +13,8 @@ export async function materializeRuntimeContract(root:string,scenario:Scenario,c
   const actionIds=scenarioTrajectory(scenario).nodes.flatMap(node=>node.kind==="hope"&&node.target.includes(".")?[node.target]:[]);
   const contract=buildRuntimeContract(scenario.id,actionIds,config,validationErrors);
   await mkdir(join(root,"tests","trajectory"),{recursive:true});
-  const outputContracts=actionIds.map(id=>{const action=scenario.actions.find(item=>item.id===id);return action?buildRuntimeOutputContract(action,scenario.values):undefined}).filter(Boolean);\n  await writeFile(join(root,"tests","trajectory","runtime-output-contract.json"),JSON.stringify(outputContracts,null,2));
+  const outputContracts=actionIds.map(id=>{const action=scenario.actions.find(item=>item.id===id);return action?buildRuntimeOutputContract(action,scenario.values):undefined}).filter(Boolean);
+  await writeFile(join(root,"tests","trajectory","runtime-output-contract.json"),JSON.stringify(outputContracts,null,2));
   await writeFile(join(root,"tests","trajectory","runtime-contract.json"),JSON.stringify(contract,null,2));
   return contract;
 }
