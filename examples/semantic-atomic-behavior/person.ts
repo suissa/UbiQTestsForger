@@ -23,7 +23,7 @@ function validatePerson(input: unknown): ValidationResult<Person> {
   if (diagnostics.length) return { ok: false, diagnostics, healed: false };
   const normalized = normalizePerson(p as Person); const failures: Diagnostic[] = [];
   if (normalized.name.length < 2) failures.push(diagnostic({ stage: "invariants", code: "name_nonempty", path: "name", expected: "trimmed length >= 2", actual: JSON.stringify(normalized.name), repairable: false }));
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized.birth)) failures.push(diagnostic({ stage: "invariants", code: "birth_iso_date", path: "birth", expected: "YYYY-MM-DD", actual: normalized.birth, repairable: false });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized.birth)) failures.push(diagnostic({ stage: "invariants", code: "birth_iso_date", path: "birth", expected: "YYYY-MM-DD", actual: normalized.birth, repairable: false }));
   else if (new Date(`${normalized.birth}T00:00:00Z`).getTime() > Date.now()) failures.push(diagnostic({ stage: "invariants", code: "birth_not_future", path: "birth", expected: "date <= now", actual: normalized.birth, repairable: false }));
   if (!/^\+[1-9]\d{10,14}$/.test(normalized.phone)) failures.push(diagnostic({ stage: "invariants", code: "phone_e164", path: "phone", expected: "+<country><digits>", actual: normalized.phone, repairable: false }));
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized.email)) failures.push(diagnostic({ stage: "invariants", code: "email_shape", path: "email", expected: "valid email", actual: normalized.email, repairable: false }));
@@ -33,7 +33,7 @@ function validatePerson(input: unknown): ValidationResult<Person> {
   if (!a.neighborhood) failures.push(diagnostic({ stage: "invariants", code: "address_neighborhood", path: "address.neighborhood", expected: "non-empty", actual: a.neighborhood, repairable: false }));
   if (!a.city) failures.push(diagnostic({ stage: "invariants", code: "address_city", path: "address.city", expected: "non-empty", actual: a.city, repairable: false }));
   if (!a.state) failures.push(diagnostic({ stage: "invariants", code: "address_state", path: "address.state", expected: "non-empty", actual: a.state, repairable: false }));
-  if (normalized.address.country !== "Brasil") failures.push(diagnostic({ stage: "constraints", code: "country_brazil", path: "address.country", expected: "Brasil", actual: normalized.address.country, repairable: false }));
+  if (a.country !== "Brasil") failures.push(diagnostic({ stage: "constraints", code: "country_brazil", path: "address.country", expected: "Brasil", actual: String(a.country), repairable: false }));
   const seen = new Set<string>(); normalized.networks.forEach((network, i) => { if (!network.name || !network.user) failures.push(diagnostic({ stage: "invariants", code: "network_fields", path: `networks.${i}`, expected: "name and user non-empty", actual: JSON.stringify(network), repairable: false })); const key = `${network.name}:${network.user}`; if (seen.has(key)) failures.push(diagnostic({ stage: "invariants", code: "network_unique", path: `networks.${i}`, expected: "unique network identity", actual: key, repairable: false })); seen.add(key); });
   if (failures.length) return { ok: false, diagnostics: failures, healed: JSON.stringify(input) !== JSON.stringify(normalized) };
   return { ok: true, value: normalized, diagnostics, healed: JSON.stringify(input) !== JSON.stringify(normalized) };
