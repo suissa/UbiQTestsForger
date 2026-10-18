@@ -10,6 +10,18 @@ Every skill expands across every declared action. The generated matrix is **17 s
 
 The generated test can only use fixture values through `$ref: values.<name>` and only nominal semantic types declared in the fixture schema. The engine rejects undeclared values/types/references.
 
+## Constraint-driven semantic cases
+
+`src/constraint-cases.ts` provides deterministic test objectives from a semantic contract. It generates a baseline, type mismatches, missing required properties, deliberately violated constraints, and exact numeric/string-length boundaries. Every case changes one property at a time to keep failures attributable. The contract uses explicit example values; the generator does not invent valid business fixtures.
+
+Supported constraints: `required`, `min`, `max`, `minLength`, `maxLength`, `pattern`, `enum`, `positive`, and `non_empty`. This first increment targets flat properties; nested-path expansion and integration with the canonical schema compiler are subsequent work.
+
+Run the focused conformance test with:
+
+```bash
+npm run test:constraints
+```
+
 ## Authentication flow
 
 Web and WhatsApp can initiate the same identity journey.
@@ -41,10 +53,10 @@ No runtime dependencies are required.
 npm test
 npm run check
 npm run check:runtime
+npm run test:constraints
 ```
 
 The YAML files are JSON-subset YAML 1.2 so they remain dependency-free under Node 24.
-
 
 ## Real runtime verification
 
@@ -66,7 +78,6 @@ The adapter is fail-closed: a missing binding, missing environment variable, tim
 
 HTTP and WebSocket credentials are redacted from evidence. The in-memory adapter remains the deterministic test double and is never silently selected when an external runtime configuration is supplied.
 
-
 ### RuntimeConformance
 
 The canonical runtime gate now exercises the transport boundary as a conformance contract rather than only a happy-path fixture.
@@ -85,7 +96,6 @@ The canonical runtime gate now exercises the transport boundary as a conformance
 - WebSocket transport failure;
 - explicit error evidence on failed transport operations.
 
-The conformance fixture is local and dependency-free. It does not silently fall back to the in-memory adapter.
-The matrix is executable, not descriptive-only. Each canonical conformance ID is registered in `src/runtime-conformance.ts`, and `test:runtime` marks every case as it executes it. The gate fails if a declared case is unknown, duplicated, or not executed, preventing the contract from drifting away from its implementation.
+The conformance fixture is local and dependency-free. It does not silently fall back to the in-memory adapter. The matrix is executable, not descriptive-only. Each canonical conformance ID is registered in `src/runtime-conformance.ts`, and `test:runtime` marks every case as it executes it. The gate fails if a declared case is unknown, duplicated, or not executed, preventing the contract from drifting away from its implementation.
 
 `runtime-check` performs a fail-closed preflight of the external runtime contract: required trajectory bindings, protocol, URL, method, status, timeout and WebSocket message-count semantics are validated before any network call. Extra bindings are rejected so the runtime manifest cannot silently diverge from the declared trajectory.

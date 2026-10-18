@@ -9,6 +9,7 @@
     "test": "node --experimental-strip-types src/cli.ts run examples/2FA-passwordless",
     "check": "node --experimental-strip-types src/cli.ts check examples/2FA-passwordless",
     "test:person": "node --experimental-strip-types examples/semantic-atomic-behavior/person.test.ts",
+    "test:constraints": "node --experimental-strip-types examples/semantic-atomic-behavior/constraint-cases.test.ts",
     "test:runtime": "node --experimental-strip-types src/runtime-integration.ts",
     "check:runtime": "node --experimental-strip-types src/cli.ts runtime-check examples/2FA-passwordless examples/2FA-passwordless/runtime/runtime.example.json",
     "test:actions": "node --experimental-strip-types examples/2FA-passwordless/implementations/actions/gateway/return_authenticated_result.test.ts && node --experimental-strip-types examples/2FA-passwordless/implementations/actions/web/receive_passkey_route.test.ts && node --experimental-strip-types examples/2FA-passwordless/implementations/actions/login/validate_passkey.test.ts && node --experimental-strip-types examples/2FA-passwordless/implementations/actions/login/receive_passkey.test.ts && node --experimental-strip-types examples/2FA-passwordless/implementations/actions/login/send_magic_link.test.ts"
