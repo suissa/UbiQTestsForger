@@ -89,7 +89,7 @@ export function evaluateConstraintCase(contract: SemanticContract, test: Constra
     p.required === false && !Object.hasOwn(test.input, path) ? true : Object.hasOwn(test.input, path) && satisfies(test.input[path], p));
   const p = contract.properties[test.path];
   if (!p) return false;
-  if (!Object.hasOwn(test.input, test.path)) return p.required !== false && !(p.constraints ?? []).some(c => c.kind === "required") ? false : true;
+  if (!Object.hasOwn(test.input, test.path)) return (p.required !== false || (p.constraints ?? []).some(c => c.kind === "required")) ? false : true;
   return satisfies(test.input[test.path], p);
 }
 export function verifyConstraintCases(contract: SemanticContract, cases = generateConstraintCases(contract)): { total: number; passed: number; failed: string[] } {
