@@ -107,7 +107,7 @@ websocketServer.on("upgrade", (request, socket) => {
     const input = frame.text ?? "";
     const messages = path === "/multi" ? [1, 2] : [1];
     for (const index of messages) {
-      socket.write(websocketFrame(JSON.stringify({runtime: "local-websocket-fixture", index, received: input.length > 0})));
+      socket.write(websocketFrame(JSON.stringify({runtime: "local-websocket-fixture", index, received: scenario.values.whatsapp_number})));
     }
     setTimeout(() => socket.end(), 10);
   });
