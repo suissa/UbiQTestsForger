@@ -12,9 +12,11 @@ The generated test can only use fixture values through `$ref: values.<name>` and
 
 ## Constraint-driven semantic cases
 
-`src/constraint-cases.ts` provides deterministic test objectives from a semantic contract. It generates a baseline, type mismatches, missing required properties, deliberately violated constraints, and exact numeric/string-length boundaries. Every case changes one property at a time to keep failures attributable. The contract uses explicit example values; the generator does not invent valid business fixtures.
+`src/constraint-cases.ts` generates deterministic cases from semantic contracts: a baseline, type mismatches, missing required properties, violated constraints, and inclusive numeric/string-length boundaries. Cases target one path at a time so failures remain attributable. Valid examples are supplied by the contract; the generator does not invent business fixtures.
 
-Supported constraints: `required`, `min`, `max`, `minLength`, `maxLength`, `pattern`, `enum`, `positive`, and `non_empty`. This first increment targets flat properties; nested-path expansion and integration with the canonical schema compiler are subsequent work.
+Contracts support flat properties and nested object properties using `properties`. Nested case paths use dot notation (for example, `address.street`), and the independent oracle validates both the targeted nested property and the complete baseline object. Optional properties are omitted from the baseline unless declared required.
+
+Supported constraints: `required`, `min`, `max`, `minLength`, `maxLength`, `pattern`, `enum`, `positive`, and `non_empty`. Array item schemas and integration with the canonical schema compiler remain follow-up work.
 
 Run the focused conformance test with:
 
