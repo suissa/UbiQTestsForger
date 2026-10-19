@@ -5,7 +5,7 @@ const valid = PersonSemanticAtomicBehavior.validate(validPerson);
 assert.equal(valid.ok, true);
 if (valid.ok) {
   assert.equal(valid.value.name, "Maria Silva");
-  assert.equal(valid.value.phone, "+55159999990000");
+  assert.equal(valid.value.phone, "+5515999990000");
   assert.equal(valid.value.email, "maria@example.com");
   assert.equal(valid.value.address.state, "SP");
   assert.equal(valid.value.networks[0].name, "github");
