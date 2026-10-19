@@ -14,7 +14,7 @@ The generated test can only use fixture values through `$ref: values.<name>` and
 
 `src/constraint-cases.ts` provides deterministic test objectives from a semantic contract. It generates a baseline, type mismatches, missing required properties, deliberately violated constraints, and exact numeric/string-length boundaries. Every case changes one property at a time to keep failures attributable. The contract uses explicit example values; the generator does not invent valid business fixtures.
 
-Supported constraints: `required`, `min`, `max`, `minLength`, `maxLength`, `pattern`, `enum`, `positive`, and `non_empty`. This first increment targets flat properties; nested-path expansion and integration with the canonical schema compiler are subsequent work.
+Supported constraints: `required`, `min`, `max`, `minLength`, `maxLength`, `pattern`, `enum`, `positive`, and `non_empty`. Nested objects and arrays of objects are supported through `properties` and `items`; generated case paths use dot notation such as `address.number` and `networks.0.name`. Object/array fixtures should be supplied explicitly with `example` so generated inputs remain deterministic. The contract model is still a generator input, not yet compiled from the existing `PersonSemanticAtomicBehavior` implementation; that integration requires making the validator's rules declarative to avoid maintaining two sources of truth.
 
 Run the focused conformance test with:
 
