@@ -2,6 +2,8 @@ name: canonical-tests
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 jobs:
   node24:
@@ -16,3 +18,5 @@ jobs:
       - run: npm run check
       - run: npm run check:runtime
       - run: npm run test:runtime
+      - run: npm run test:person
+      - run: npm run test:constraints

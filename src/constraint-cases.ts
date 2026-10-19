@@ -1,25 +1,46 @@
 export type SemanticPrimitiveType = "string" | "number" | "integer" | "boolean" | "object" | "array";
 export type Constraint =
-  | { kind: "required" } | { kind: "min" | "max" | "minLength" | "maxLength"; value: number }
-  | { kind: "pattern"; value: string } | { kind: "enum"; values: readonly unknown[] }
-  | { kind: "positive" } | { kind: "non_empty" };
-export interface PropertyContract { type: SemanticPrimitiveType; required?: boolean; example: unknown; constraints?: readonly Constraint[] }
+  | { kind: "required" }
+  | { kind: "min" | "max" | "minLength" | "maxLength"; value: number }
+  | { kind: "pattern"; value: string }
+  | { kind: "enum"; values: readonly unknown[] }
+  | { kind: "positive" }
+  | { kind: "non_empty" };
+
+export interface PropertyContract {
+  type: SemanticPrimitiveType;
+  required?: boolean;
+  example: unknown;
+  constraints?: readonly Constraint[];
+  /** Child contracts for object-valued properties. */
+  properties?: Record<string, PropertyContract>;
+}
 export interface SemanticContract { name: string; properties: Record<string, PropertyContract> }
 export interface ConstraintTestCase {
-  id: string; contract: string; path: string; objective: string; input: Record<string, unknown>;
-  expected: "accept" | "reject"; rationale: string;
+  id: string;
+  contract: string;
+  path: string;
+  objective: string;
+  input: Record<string, unknown>;
+  expected: "accept" | "reject";
+  rationale: string;
 }
+
 const clone = <T>(value: T): T => structuredClone(value);
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+
 function matchesType(value: unknown, type: SemanticPrimitiveType): boolean {
   switch (type) {
     case "string": return typeof value === "string";
     case "number": return typeof value === "number" && Number.isFinite(value);
     case "integer": return typeof value === "number" && Number.isInteger(value);
     case "boolean": return typeof value === "boolean";
-    case "object": return value !== null && typeof value === "object" && !Array.isArray(value);
+    case "object": return isObject(value);
     case "array": return Array.isArray(value);
   }
 }
+
 function satisfies(value: unknown, property: PropertyContract): boolean {
   if (!matchesType(value, property.type)) return false;
   for (const c of property.constraints ?? []) switch (c.kind) {
@@ -33,8 +54,19 @@ function satisfies(value: unknown, property: PropertyContract): boolean {
     case "positive": if (typeof value !== "number" || value <= 0) return false; break;
     case "non_empty": if (typeof value !== "string" || value.trim().length === 0) return false; break;
   }
+  if (property.properties) {
+    if (!isObject(value)) return false;
+    for (const [key, child] of Object.entries(property.properties)) {
+      if (!Object.hasOwn(value, key)) {
+        if (child.required !== false || (child.constraints ?? []).some(c => c.kind === "required")) return false;
+        continue;
+      }
+      if (!satisfies(value[key], child)) return false;
+    }
+  }
   return true;
 }
+
 function invalidValue(type: SemanticPrimitiveType, c: Constraint): unknown {
   switch (c.kind) {
     case "min": return c.value - 1;
@@ -57,42 +89,123 @@ function mismatch(type: SemanticPrimitiveType): unknown {
     case "array": return {};
   }
 }
-/** Generates deterministic cases from declared constraints and explicit examples. */
+
+function exampleFor(property: PropertyContract): unknown {
+  if (!property.properties) return clone(property.example);
+  const result: Record<string, unknown> = {};
+  for (const [key, child] of Object.entries(property.properties)) {
+    if (child.required !== false) result[key] = exampleFor(child);
+  }
+  return result;
+}
+function baselineFor(contract: SemanticContract): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, property] of Object.entries(contract.properties)) {
+    if (property.required !== false) result[key] = exampleFor(property);
+  }
+  return result;
+}
+function propertyAt(contract: SemanticContract, path: string): PropertyContract | undefined {
+  let properties = contract.properties;
+  let current: PropertyContract | undefined;
+  for (const part of path.split(".")) {
+    current = properties[part];
+    if (!current) return undefined;
+    properties = current.properties ?? {};
+  }
+  return current;
+}
+function setAtPath(target: Record<string, unknown>, path: string, value: unknown): void {
+  const parts = path.split(".");
+  let current = target;
+  for (const part of parts.slice(0, -1)) {
+    const next = current[part];
+    if (!isObject(next)) return;
+    current = next;
+  }
+  current[parts[parts.length - 1]] = clone(value);
+}
+function deleteAtPath(target: Record<string, unknown>, path: string): void {
+  const parts = path.split(".");
+  let current = target;
+  for (const part of parts.slice(0, -1)) {
+    const next = current[part];
+    if (!isObject(next)) return;
+    current = next;
+  }
+  delete current[parts[parts.length - 1]];
+}
+function valueAtPath(target: Record<string, unknown>, path: string): { exists: boolean; value: unknown } {
+  const parts = path.split(".");
+  let current: unknown = target;
+  for (const part of parts) {
+    if (!isObject(current) || !Object.hasOwn(current, part)) return { exists: false, value: undefined };
+    current = current[part];
+  }
+  return { exists: true, value: current };
+}
+function isRequired(property: PropertyContract): boolean {
+  return property.required !== false || (property.constraints ?? []).some(c => c.kind === "required");
+}
+
+/** Generates deterministic cases for flat contracts and recursively nested object properties. */
 export function generateConstraintCases(contract: SemanticContract): ConstraintTestCase[] {
-  const baseline: Record<string, unknown> = {};
-  for (const [path, p] of Object.entries(contract.properties)) if (p.required !== false) baseline[path] = clone(p.example);
+  const baseline = baselineFor(contract);
   const cases: ConstraintTestCase[] = [];
   const add = (path: string, objective: string, value: unknown, expected: "accept" | "reject", rationale: string, omit = false) => {
     const input = clone(baseline);
-    if (omit) delete input[path]; else input[path] = clone(value);
+    if (omit) deleteAtPath(input, path); else setAtPath(input, path, value);
     cases.push({ id: contract.name + "." + path + "." + objective, contract: contract.name, path, objective, input, expected, rationale });
   };
-  cases.push({ id: contract.name + ".baseline.valid", contract: contract.name, path: "$", objective: "baseline.valid", input: clone(baseline), expected: "accept", rationale: "Declared example values form the baseline fixture." });
-  for (const [path, p] of Object.entries(contract.properties)) {
-    add(path, "type.mismatch", mismatch(p.type), "reject", "The value must have semantic type " + p.type + ".");
-    if (p.required !== false && !(p.constraints ?? []).some(c => c.kind === "required"))
-      add(path, "presence.missing", undefined, "reject", "Required property must be present.", true);
-    for (const [i, c] of (p.constraints ?? []).entries()) {
-      if (c.kind === "required") { add(path, "constraint." + i + ".missing", undefined, "reject", "Required constraint rejects omission.", true); continue; }
-      add(path, "constraint." + c.kind + ".violated", invalidValue(p.type, c), "reject", "Deliberately violates " + c.kind + ".");
-      if (c.kind === "min") add(path, "boundary.min", c.value, "accept", "Exact minimum is included.");
-      if (c.kind === "max") add(path, "boundary.max", c.value, "accept", "Exact maximum is included.");
-      if (c.kind === "minLength") add(path, "boundary.minLength", "x".repeat(c.value), "accept", "Exact minimum length is included.");
-      if (c.kind === "maxLength") add(path, "boundary.maxLength", "x".repeat(c.value), "accept", "Exact maximum length is included.");
+  cases.push({
+    id: contract.name + ".baseline.valid", contract: contract.name, path: "$", objective: "baseline.valid",
+    input: clone(baseline), expected: "accept", rationale: "Declared example values form the baseline fixture."
+  });
+
+  const visit = (properties: Record<string, PropertyContract>, prefix = ""): void => {
+    for (const [key, property] of Object.entries(properties)) {
+      const path = prefix ? prefix + "." + key : key;
+      add(path, "type.mismatch", mismatch(property.type), "reject", "The value must have semantic type " + property.type + ".");
+      if (isRequired(property)) add(path, "presence.missing", undefined, "reject", "Required property must be present.", true);
+      for (const [i, constraint] of (property.constraints ?? []).entries()) {
+        if (constraint.kind === "required") {
+          add(path, "constraint." + i + ".missing", undefined, "reject", "Required constraint rejects omission.", true);
+          continue;
+        }
+        add(path, "constraint." + constraint.kind + ".violated", invalidValue(property.type, constraint), "reject", "Deliberately violates " + constraint.kind + ".");
+        if (constraint.kind === "min") add(path, "boundary.min", constraint.value, "accept", "Exact minimum is included.");
+        if (constraint.kind === "max") add(path, "boundary.max", constraint.value, "accept", "Exact maximum is included.");
+        if (constraint.kind === "minLength") add(path, "boundary.minLength", "x".repeat(constraint.value), "accept", "Exact minimum length is included.");
+        if (constraint.kind === "maxLength") add(path, "boundary.maxLength", "x".repeat(constraint.value), "accept", "Exact maximum length is included.");
+      }
+      if (property.properties) visit(property.properties, path);
     }
-  }
+  };
+  visit(contract.properties);
   return cases;
 }
-/** Independent oracle for supported flat-property contracts. */
+
+/** Independent oracle for the declared constraints and nested object properties. */
 export function evaluateConstraintCase(contract: SemanticContract, test: ConstraintTestCase): boolean {
-  if (test.path === "$") return Object.entries(contract.properties).every(([path, p]) =>
-    p.required === false && !Object.hasOwn(test.input, path) ? true : Object.hasOwn(test.input, path) && satisfies(test.input[path], p));
-  const p = contract.properties[test.path];
-  if (!p) return false;
-  if (!Object.hasOwn(test.input, test.path)) return (p.required !== false || (p.constraints ?? []).some(c => c.kind === "required")) ? false : true;
-  return satisfies(test.input[test.path], p);
+  if (test.path === "$") {
+    return Object.entries(contract.properties).every(([path, property]) => {
+      const found = valueAtPath(test.input, path);
+      if (!found.exists) return !isRequired(property);
+      return satisfies(found.value, property);
+    });
+  }
+  const property = propertyAt(contract, test.path);
+  if (!property) return false;
+  const found = valueAtPath(test.input, test.path);
+  if (!found.exists) return !isRequired(property);
+  return satisfies(found.value, property);
 }
-export function verifyConstraintCases(contract: SemanticContract, cases = generateConstraintCases(contract)): { total: number; passed: number; failed: string[] } {
-  const failed = cases.filter(test => (evaluateConstraintCase(contract, test) ? "accept" : "reject") !== test.expected).map(test => test.id);
+export function verifyConstraintCases(
+  contract: SemanticContract,
+  cases = generateConstraintCases(contract)
+): { total: number; passed: number; failed: string[] } {
+  const failed = cases
+    .filter(test => (evaluateConstraintCase(contract, test) ? "accept" : "reject") !== test.expected)
+    .map(test => test.id);
   return { total: cases.length, passed: cases.length - failed.length, failed };
 }
