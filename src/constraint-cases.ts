@@ -14,6 +14,8 @@ export interface PropertyContract {
   constraints?: readonly Constraint[];
   /** Child contracts for object-valued properties. */
   properties?: Record<string, PropertyContract>;
+  /** Contract for every array element. */
+  items?: PropertyContract;
 }
 export interface SemanticContract { name: string; properties: Record<string, PropertyContract> }
 export interface ConstraintTestCase {
@@ -64,6 +66,10 @@ function satisfies(value: unknown, property: PropertyContract): boolean {
       if (!satisfies(value[key], child)) return false;
     }
   }
+  if (property.items) {
+    if (!Array.isArray(value)) return false;
+    if (!value.every(item => satisfies(item, property.items!))) return false;
+  }
   return true;
 }
 
@@ -91,6 +97,12 @@ function mismatch(type: SemanticPrimitiveType): unknown {
 }
 
 function exampleFor(property: PropertyContract): unknown {
+  if (property.items && Array.isArray(property.example)) {
+    return property.example.map(item => {
+      if (!property.items) return clone(item);
+      return exampleFor({ ...property.items, example: item });
+    });
+  }
   if (!property.properties) return clone(property.example);
   const result: Record<string, unknown> = {};
   for (const [key, child] of Object.entries(property.properties)) {
@@ -109,6 +121,12 @@ function propertyAt(contract: SemanticContract, path: string): PropertyContract 
   let properties = contract.properties;
   let current: PropertyContract | undefined;
   for (const part of path.split(".")) {
+    if (/^\d+$/.test(part)) {
+      if (!current?.items) return undefined;
+      current = current.items;
+      properties = current.properties ?? {};
+      continue;
+    }
     current = properties[part];
     if (!current) return undefined;
     properties = current.properties ?? {};
@@ -117,30 +135,33 @@ function propertyAt(contract: SemanticContract, path: string): PropertyContract 
 }
 function setAtPath(target: Record<string, unknown>, path: string, value: unknown): void {
   const parts = path.split(".");
-  let current = target;
+  let current: unknown = target;
   for (const part of parts.slice(0, -1)) {
-    const next = current[part];
-    if (!isObject(next)) return;
-    current = next;
+    if (isObject(current) && Object.hasOwn(current, part)) current = current[part];
+    else if (Array.isArray(current) && /^\d+$/.test(part)) current = current[Number(part)];
+    else return;
   }
-  current[parts[parts.length - 1]] = clone(value);
+  if (isObject(current)) current[parts[parts.length - 1]] = clone(value);
+  else if (Array.isArray(current) && /^\d+$/.test(parts[parts.length - 1])) current[Number(parts[parts.length - 1])] = clone(value);
 }
 function deleteAtPath(target: Record<string, unknown>, path: string): void {
   const parts = path.split(".");
-  let current = target;
+  let current: unknown = target;
   for (const part of parts.slice(0, -1)) {
-    const next = current[part];
-    if (!isObject(next)) return;
-    current = next;
+    if (isObject(current) && Object.hasOwn(current, part)) current = current[part];
+    else if (Array.isArray(current) && /^\d+$/.test(part)) current = current[Number(part)];
+    else return;
   }
-  delete current[parts[parts.length - 1]];
+  if (isObject(current)) delete current[parts[parts.length - 1]];
+  else if (Array.isArray(current) && /^\d+$/.test(parts[parts.length - 1])) delete current[Number(parts[parts.length - 1])];
 }
 function valueAtPath(target: Record<string, unknown>, path: string): { exists: boolean; value: unknown } {
   const parts = path.split(".");
   let current: unknown = target;
   for (const part of parts) {
-    if (!isObject(current) || !Object.hasOwn(current, part)) return { exists: false, value: undefined };
-    current = current[part];
+    if (isObject(current) && Object.hasOwn(current, part)) current = current[part];
+    else if (Array.isArray(current) && /^\d+$/.test(part) && Number(part) < current.length) current = current[Number(part)];
+    else return { exists: false, value: undefined };
   }
   return { exists: true, value: current };
 }
@@ -148,7 +169,7 @@ function isRequired(property: PropertyContract): boolean {
   return property.required !== false || (property.constraints ?? []).some(c => c.kind === "required");
 }
 
-/** Generates deterministic cases for flat contracts and recursively nested object properties. */
+/** Generates deterministic cases for flat contracts, nested objects, and the first declared array item. */
 export function generateConstraintCases(contract: SemanticContract): ConstraintTestCase[] {
   const baseline = baselineFor(contract);
   const cases: ConstraintTestCase[] = [];
@@ -157,10 +178,7 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
     if (omit) deleteAtPath(input, path); else setAtPath(input, path, value);
     cases.push({ id: contract.name + "." + path + "." + objective, contract: contract.name, path, objective, input, expected, rationale });
   };
-  cases.push({
-    id: contract.name + ".baseline.valid", contract: contract.name, path: "$", objective: "baseline.valid",
-    input: clone(baseline), expected: "accept", rationale: "Declared example values form the baseline fixture."
-  });
+  cases.push({ id: contract.name + ".baseline.valid", contract: contract.name, path: "$", objective: "baseline.valid", input: clone(baseline), expected: "accept", rationale: "Declared example values form the baseline fixture." });
 
   const visit = (properties: Record<string, PropertyContract>, prefix = ""): void => {
     for (const [key, property] of Object.entries(properties)) {
@@ -179,13 +197,14 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
         if (constraint.kind === "maxLength") add(path, "boundary.maxLength", "x".repeat(constraint.value), "accept", "Exact maximum length is included.");
       }
       if (property.properties) visit(property.properties, path);
+      if (property.items) visit({ "0": property.items }, path);
     }
   };
   visit(contract.properties);
   return cases;
 }
 
-/** Independent oracle for the declared constraints and nested object properties. */
+/** Independent oracle for declared constraints, nested object properties, and array item schemas. */
 export function evaluateConstraintCase(contract: SemanticContract, test: ConstraintTestCase): boolean {
   if (test.path === "$") {
     return Object.entries(contract.properties).every(([path, property]) => {
@@ -200,12 +219,7 @@ export function evaluateConstraintCase(contract: SemanticContract, test: Constra
   if (!found.exists) return !isRequired(property);
   return satisfies(found.value, property);
 }
-export function verifyConstraintCases(
-  contract: SemanticContract,
-  cases = generateConstraintCases(contract)
-): { total: number; passed: number; failed: string[] } {
-  const failed = cases
-    .filter(test => (evaluateConstraintCase(contract, test) ? "accept" : "reject") !== test.expected)
-    .map(test => test.id);
+export function verifyConstraintCases(contract: SemanticContract, cases = generateConstraintCases(contract)): { total: number; passed: number; failed: string[] } {
+  const failed = cases.filter(test => (evaluateConstraintCase(contract, test) ? "accept" : "reject") !== test.expected).map(test => test.id);
   return { total: cases.length, passed: cases.length - failed.length, failed };
 }
