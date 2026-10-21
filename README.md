@@ -14,9 +14,9 @@ The generated test can only use fixture values through `$ref: values.<name>` and
 
 `src/constraint-cases.ts` generates deterministic cases from semantic contracts: a baseline, type mismatches, missing required properties, violated constraints, and inclusive numeric/string-length boundaries. Cases target one path at a time so failures remain attributable. Valid examples are supplied by the contract; the generator does not invent business fixtures.
 
-Contracts support flat properties and nested object properties using `properties`. Nested case paths use dot notation (for example, `address.street`), and the independent oracle validates both the targeted nested property and the complete baseline object. Optional properties are omitted from the baseline unless declared required.
+Contracts support flat properties, nested object properties using `properties`, and array element schemas using `items`. Nested case paths use dot notation with numeric indexes (for example, `address.street` and `networks.0.name`). The first declared array item is used as the deterministic fixture target; its child schema is traversed recursively. The independent oracle validates array types and every element against the declared item contract.
 
-Supported constraints: `required`, `min`, `max`, `minLength`, `maxLength`, `pattern`, `enum`, `positive`, and `non_empty`. Array item schemas and integration with the canonical schema compiler remain follow-up work.
+Supported constraints: `required`, `min`, `max`, `minLength`, `maxLength`, `pattern`, `enum`, `positive`, and `non_empty`.
 
 Run the focused conformance test with:
 
@@ -77,27 +77,3 @@ node --experimental-strip-types src/cli.ts trajectory examples/2FA-passwordless 
 ```
 
 The adapter is fail-closed: a missing binding, missing environment variable, timeout, transport failure, connection closure, or unexpected HTTP status produces explicit runtime evidence and cannot be reported as a satisfied trajectory. WebSocket bindings also honor `receive.messages`, allowing the runtime contract to require one or multiple received messages.
-
-HTTP and WebSocket credentials are redacted from evidence. The in-memory adapter remains the deterministic test double and is never silently selected when an external runtime configuration is supplied.
-
-### RuntimeConformance
-
-The canonical runtime gate now exercises the transport boundary as a conformance contract rather than only a happy-path fixture.
-
-`npm run test:runtime` validates:
-
-- HTTP success against the canonical trajectory;
-- unexpected HTTP status;
-- HTTP timeout;
-- missing HTTP binding;
-- failed HTTP actions do not mutate runtime state or return output;
-- WebSocket success with `open -> send -> receive` evidence;
-- WebSocket multi-message reception through `receive.messages`;
-- WebSocket close before a required message;
-- WebSocket close before opening;
-- WebSocket transport failure;
-- explicit error evidence on failed transport operations.
-
-The conformance fixture is local and dependency-free. It does not silently fall back to the in-memory adapter. The matrix is executable, not descriptive-only. Each canonical conformance ID is registered in `src/runtime-conformance.ts`, and `test:runtime` marks every case as it executes it. The gate fails if a declared case is unknown, duplicated, or not executed, preventing the contract from drifting away from its implementation.
-
-`runtime-check` performs a fail-closed preflight of the external runtime contract: required trajectory bindings, protocol, URL, method, status, timeout and WebSocket message-count semantics are validated before any network call. Extra bindings are rejected so the runtime manifest cannot silently diverge from the declared trajectory.
