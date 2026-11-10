@@ -41,6 +41,14 @@ export interface PropertyContract {
   propertyNames?: PropertyContract;
   /** Contracts applied to keys matching each regular expression. */
   patternProperties?: Record<string, PropertyContract>;
+  /** Every subschema must accept the same value. */
+  allOf?: PropertyContract[];
+  /** At least one subschema must accept the same value. */
+  anyOf?: PropertyContract[];
+  /** Exactly one subschema must accept the same value. */
+  oneOf?: PropertyContract[];
+  /** The value must not satisfy this subschema. */
+  not?: PropertyContract;
 }
 export interface SemanticContract { name: string; properties: Record<string, PropertyContract> }
 export interface ConstraintTestCase { id: string; contract: string; path: string; objective: string; input: Record<string, unknown>; expected: "accept" | "reject"; rationale: string }
@@ -91,6 +99,14 @@ function assertValidContract(properties: Record<string, PropertyContract>, prefi
   for (const [key, property] of Object.entries(properties)) {
     const path = prefix ? prefix + "." + key : key;
     if (!validArrayBounds(property)) throw new RangeError("Invalid array cardinality bounds at " + path);
+    for (const [keyword, schemas] of [["allOf", property.allOf], ["anyOf", property.anyOf], ["oneOf", property.oneOf]] as const) {
+      if (schemas !== undefined) {
+        if (!Array.isArray(schemas) || schemas.length === 0)
+          throw new TypeError(keyword + " must contain at least one schema at " + path);
+        schemas.forEach((schema, index) => assertValidContract({ [keyword + index]: schema }, path + "." + keyword));
+      }
+    }
+    if (property.not) assertValidContract({ not: property.not }, path + ".not");
     if (!validCountBounds(property.minProperties, property.maxProperties))
       throw new RangeError("Invalid object property-count bounds at " + path);
     if ((property.minProperties !== undefined || property.maxProperties !== undefined
@@ -131,6 +147,10 @@ function assertValidContract(properties: Record<string, PropertyContract>, prefi
 
 function satisfies(value: unknown, property: PropertyContract): boolean {
   if (!matchesType(value, property.type)) return false;
+  if (property.allOf && !property.allOf.every(schema => satisfies(value, schema))) return false;
+  if (property.anyOf && !property.anyOf.some(schema => satisfies(value, schema))) return false;
+  if (property.oneOf && property.oneOf.filter(schema => satisfies(value, schema)).length !== 1) return false;
+  if (property.not && satisfies(value, property.not)) return false;
   if (property.type === "array" && !validArrayBounds(property)) return false;
   if (Array.isArray(value)) {
     if ((property.minItems !== undefined && value.length < property.minItems)
@@ -269,6 +289,44 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
         if (constraint.kind === "max") add(path, "boundary.max", constraint.value, "accept", "Exact maximum is included.");
         if (constraint.kind === "minLength") add(path, "boundary.minLength", "x".repeat(constraint.value), "accept", "Exact minimum length is included.");
         if (constraint.kind === "maxLength") add(path, "boundary.maxLength", "x".repeat(constraint.value), "accept", "Exact maximum length is included.");
+      }
+      if (property.allOf) {
+        const value = clone(property.example);
+        add(path, "composition.allOf.valid", value,
+          property.allOf.every(schema => satisfies(value, schema)) ? "accept" : "reject",
+          "The value is checked against every allOf subschema.");
+        property.allOf.forEach((schema, index) => {
+          const candidate = mismatch(schema.type);
+          add(path, "composition.allOf.branch-invalid." + index, candidate, "reject",
+            "A value violating an allOf subschema must be rejected.");
+        });
+      }
+      if (property.anyOf) {
+        property.anyOf.forEach((schema, index) => {
+          const candidate = clone(schema.example);
+          add(path, "composition.anyOf.branch." + index, candidate,
+            matchesType(candidate, property.type) && satisfies(candidate, schema) ? "accept" : "reject",
+            "A value satisfying at least one anyOf subschema is accepted.");
+        });
+        add(path, "composition.anyOf.no-match", null, "reject",
+          "A value satisfying none of the anyOf subschemas is rejected.");
+      }
+      if (property.oneOf) {
+        property.oneOf.forEach((schema, index) => {
+          const candidate = clone(schema.example);
+          const matches = property.oneOf!.filter(option => satisfies(candidate, option)).length;
+          add(path, "composition.oneOf.branch." + index, candidate,
+            matchesType(candidate, property.type) && matches === 1 ? "accept" : "reject",
+            "oneOf accepts a value only when exactly one subschema matches.");
+        });
+        add(path, "composition.oneOf.no-match", null, "reject",
+          "A value matching no oneOf subschema is rejected.");
+      }
+      if (property.not) {
+        const candidate = clone(property.example);
+        add(path, "composition.not.blocked", candidate,
+          matchesType(candidate, property.type) && satisfies(candidate, property.not) ? "reject" : "accept",
+          "The not subschema excludes values that it accepts.");
       }
       if (property.type === "array" && (property.minItems !== undefined || property.maxItems !== undefined)) {
         const fixture = Array.isArray(property.example) ? clone(property.example) : [];
