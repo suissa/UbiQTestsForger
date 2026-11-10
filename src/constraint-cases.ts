@@ -368,7 +368,7 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
           add(path, "object.additionalProperties.type-mismatch", withExtra(objectExample, key, mismatch(property.additionalProperties.type)), "reject",
             "An undeclared key must satisfy the additionalProperties schema.");
         } else if (property.additionalProperties === true) {
-          add(path, "object.additionalProperties.allowed", withExtra(objectExample, "__undeclared", "extra"), "accept",
+          add(path, "object.additionalProperties.allowed", withExtra(objectExample, "extra-key", "extra"), "accept",
             "Undeclared keys are explicitly allowed.");
         }
         for (const [trigger, dependencies] of Object.entries(property.dependentRequired ?? {})) {
