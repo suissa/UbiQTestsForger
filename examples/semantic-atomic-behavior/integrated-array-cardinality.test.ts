@@ -261,5 +261,62 @@ assert.throws(() => generateConstraintCases({
   properties: { value: { type: "string", example: "x", anyOf: [] } },
 }), TypeError);
 
-console.log(JSON.stringify({ ok: true, generated: cases.length, arrays: networks.length, objectCases: objectCases.length, shapeCases: shapeCases.length, compositionCases: compositionCases.length }));
+
+const conditionalContract: SemanticContract = {
+  name: "ConditionalSchemas",
+  properties: {
+    company: {
+      type: "object", required: true,
+      example: { kind: "business", taxId: "BR-123" },
+      properties: {
+        kind: { type: "string", required: true, example: "business" },
+        taxId: { type: "string", required: false, example: "BR-123" },
+        consumerCode: { type: "string", required: false, example: "C-123" },
+      },
+      if: {
+        type: "object", example: { kind: "business" },
+        properties: { kind: { type: "string", example: "business", constraints: [{ kind: "enum", values: ["business"] }] } },
+      },
+      then: {
+        type: "object", example: { taxId: "BR-123" },
+        properties: { taxId: { type: "string", required: true, example: "BR-123" } },
+      },
+      else: {
+        type: "object", example: { consumerCode: "C-123" },
+        properties: { consumerCode: { type: "string", required: true, example: "C-123" } },
+      },
+    },
+    consumer: {
+      type: "object", required: true,
+      example: { kind: "consumer", consumerCode: "C-123" },
+      properties: {
+        kind: { type: "string", required: true, example: "consumer" },
+        taxId: { type: "string", required: false, example: "BR-123" },
+        consumerCode: { type: "string", required: false, example: "C-123" },
+      },
+      if: {
+        type: "object", example: { kind: "business" },
+        properties: { kind: { type: "string", example: "business", constraints: [{ kind: "enum", values: ["business"] }] } },
+      },
+      then: {
+        type: "object", example: { taxId: "BR-123" },
+        properties: { taxId: { type: "string", required: true, example: "BR-123" } },
+      },
+      else: {
+        type: "object", example: { consumerCode: "C-123" },
+        properties: { consumerCode: { type: "string", required: true, example: "C-123" } },
+      },
+    },
+  },
+};
+const conditionalCases = generateConstraintCases(conditionalContract);
+assert.equal(conditionalCases.find(test => test.path === "company" && test.objective === "conditional.then")?.expected, "accept");
+assert.equal(conditionalCases.find(test => test.path === "consumer" && test.objective === "conditional.else")?.expected, "accept");
+assert.deepEqual(verifyConstraintCases(conditionalContract, conditionalCases).failed, []);
+assert.throws(() => generateConstraintCases({
+  name: "InvalidConditional",
+  properties: { value: { type: "string", example: "x", then: { type: "string", example: "x" } } },
+}), TypeError);
+
+console.log(JSON.stringify({ ok: true, generated: cases.length, arrays: networks.length, objectCases: objectCases.length, shapeCases: shapeCases.length, compositionCases: compositionCases.length, conditionalCases: conditionalCases.length }));
 
