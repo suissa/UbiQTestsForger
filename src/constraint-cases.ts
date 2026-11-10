@@ -327,6 +327,10 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
         add(path, "composition.not.blocked", candidate,
           matchesType(candidate, property.type) && satisfies(candidate, property.not) ? "reject" : "accept",
           "The not subschema excludes values that it accepts.");
+        const excluded = clone(property.not.example);
+        add(path, "composition.not.excluded", excluded,
+          matchesType(excluded, property.type) && satisfies(excluded, property.not) ? "reject" : "accept",
+          "A value matching the not subschema must be rejected.");
       }
       if (property.type === "array" && (property.minItems !== undefined || property.maxItems !== undefined)) {
         const fixture = Array.isArray(property.example) ? clone(property.example) : [];
