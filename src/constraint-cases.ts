@@ -183,7 +183,13 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
         }
       }
       if (property.properties) visit(property.properties, path);
-      if (property.items) visit({ "0": property.items }, path);
+      if (property.items && Array.isArray(property.example)) {
+        // Exercise every declared fixture element; never synthesize an item when no example exists.
+        const itemContracts = Object.fromEntries(
+          property.example.map((_, index) => [String(index), property.items!]),
+        ) as Record<string, PropertyContract>;
+        if (Object.keys(itemContracts).length > 0) visit(itemContracts, path);
+      }
     }
   };
   visit(contract.properties); return cases;
