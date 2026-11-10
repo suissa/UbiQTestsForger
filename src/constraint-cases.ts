@@ -190,6 +190,7 @@ function satisfies(value: unknown, property: PropertyContract): boolean {
   }
   return true;
 }
+
 function invalidValue(type: SemanticPrimitiveType, c: Constraint): unknown {
   switch (c.kind) {
     case "min": return c.value - 1; case "max": return c.value + 1;
