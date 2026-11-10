@@ -49,6 +49,12 @@ export interface PropertyContract {
   oneOf?: PropertyContract[];
   /** The value must not satisfy this subschema. */
   not?: PropertyContract;
+  /** Conditional schema selector. */
+  if?: PropertyContract;
+  /** Applied when the if schema matches. */
+  then?: PropertyContract;
+  /** Applied when the if schema does not match. */
+  else?: PropertyContract;
 }
 export interface SemanticContract { name: string; properties: Record<string, PropertyContract> }
 export interface ConstraintTestCase { id: string; contract: string; path: string; objective: string; input: Record<string, unknown>; expected: "accept" | "reject"; rationale: string }
@@ -107,6 +113,11 @@ function assertValidContract(properties: Record<string, PropertyContract>, prefi
       }
     }
     if (property.not) assertValidContract({ not: property.not }, path + ".not");
+    if ((property.then !== undefined || property.else !== undefined) && property.if === undefined)
+      throw new TypeError("then/else require an if schema at " + path);
+    if (property.if) assertValidContract({ if: property.if }, path + ".if");
+    if (property.then) assertValidContract({ then: property.then }, path + ".then");
+    if (property.else) assertValidContract({ else: property.else }, path + ".else");
     if (!validCountBounds(property.minProperties, property.maxProperties))
       throw new RangeError("Invalid object property-count bounds at " + path);
     if ((property.minProperties !== undefined || property.maxProperties !== undefined
@@ -151,6 +162,10 @@ function satisfies(value: unknown, property: PropertyContract): boolean {
   if (property.anyOf && !property.anyOf.some(schema => satisfies(value, schema))) return false;
   if (property.oneOf && property.oneOf.filter(schema => satisfies(value, schema)).length !== 1) return false;
   if (property.not && satisfies(value, property.not)) return false;
+  if (property.if) {
+    const selected = satisfies(value, property.if) ? property.then : property.else;
+    if (selected && !satisfies(value, selected)) return false;
+  }
   if (property.type === "array" && !validArrayBounds(property)) return false;
   if (Array.isArray(value)) {
     if ((property.minItems !== undefined && value.length < property.minItems)
@@ -331,6 +346,21 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
         add(path, "composition.not.excluded", excluded,
           matchesType(excluded, property.type) && satisfies(excluded, property.not) ? "reject" : "accept",
           "A value matching the not subschema must be rejected.");
+      }
+      if (property.if) {
+        const candidate = clone(property.example);
+        const conditionMatches = satisfies(candidate, property.if);
+        const selected = conditionMatches ? property.then : property.else;
+        add(path, conditionMatches ? "conditional.then" : "conditional.else", candidate,
+          !selected || satisfies(candidate, selected) ? "accept" : "reject",
+          conditionMatches
+            ? "The if schema matches, so the then schema is applied."
+            : "The if schema does not match, so the else schema is applied.");
+        const conditionExample = clone(property.if.example);
+        const conditionSelected = satisfies(conditionExample, property.if) ? property.then : property.else;
+        if (conditionSelected) add(path, "conditional.if-example", conditionExample,
+          matchesType(conditionExample, property.type) && satisfies(conditionExample, conditionSelected) ? "accept" : "reject",
+          "The if schema example selects and validates the corresponding conditional branch.");
       }
       if (property.type === "array" && (property.minItems !== undefined || property.maxItems !== undefined)) {
         const fixture = Array.isArray(property.example) ? clone(property.example) : [];

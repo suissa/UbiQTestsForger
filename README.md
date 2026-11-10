@@ -51,6 +51,12 @@ Property contracts support JSON-Schema-style logical composition on the same val
 
 Composition is recursive and can be combined with the existing scalar, array, and object invariants. Empty `allOf`, `anyOf`, or `oneOf` declarations are rejected during contract validation. The integrated suite covers accepted and rejected branches, no-match cases, overlapping `oneOf` branches, and `not` exclusions.
 
+### Conditional schema validation
+
+Property contracts support `if`, `then`, and `else` on the same value. When `if` matches, `then` is evaluated; otherwise `else` is evaluated. Either branch may be omitted. Declaring `then` or `else` without `if` is invalid. Conditions and selected branches are recursively validated and can be combined with logical composition and the existing object, array, and scalar invariants.
+
+The integrated suite covers matching and non-matching conditions with distinct required object fields, plus invalid conditional declarations.
+
 ## Authentication flow
 
 Web and WhatsApp can initiate the same identity journey.
