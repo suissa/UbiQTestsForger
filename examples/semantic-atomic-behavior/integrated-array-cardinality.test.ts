@@ -169,4 +169,44 @@ assert.throws(() => generateConstraintCases({
   } },
 }), TypeError);
 
-console.log(JSON.stringify({ ok: true, generated: cases.length, arrays: networks.length, objectCases: objectCases.length }));
+
+const shapeContract: SemanticContract = {
+  name: "ObjectShape",
+  properties: {
+    settings: {
+      type: "object",
+      required: true,
+      example: { name: "default", "x-label": "critical" },
+      properties: {
+        name: { type: "string", required: true, example: "default" },
+      },
+      minProperties: 1,
+      maxProperties: 3,
+      propertyNames: {
+        type: "string", example: "key",
+        constraints: [{ kind: "pattern", value: "^[a-z-]+$" }],
+      },
+      patternProperties: {
+        "^x-": { type: "string", example: "critical" },
+      },
+      additionalProperties: false,
+    },
+  },
+};
+const shapeCases = generateConstraintCases(shapeContract);
+assert.equal(shapeCases.find(test => test.objective === "object.minProperties.boundary")?.expected, "accept");
+assert.equal(shapeCases.find(test => test.objective === "object.maxProperties.above")?.expected, "reject");
+assert.equal(shapeCases.find(test => test.objective === "object.propertyNames.valid")?.expected, "accept");
+assert.equal(shapeCases.find(test => test.objective === "object.propertyNames.invalid")?.expected, "reject");
+assert.equal(shapeCases.find(test => test.objective === "object.patternProperties.valid.^x-")?.expected, "accept");
+assert.equal(shapeCases.find(test => test.objective === "object.patternProperties.invalid.^x-")?.expected, "reject");
+assert.deepEqual(verifyConstraintCases(shapeContract, shapeCases).failed, []);
+assert.throws(() => generateConstraintCases({
+  name: "InvalidObjectBounds",
+  properties: { data: { type: "object", example: {}, minProperties: 3, maxProperties: 2 } },
+}), RangeError);
+assert.throws(() => generateConstraintCases({
+  name: "InvalidObjectPattern",
+  properties: { data: { type: "object", example: {}, patternProperties: { "[": { type: "string", example: "x" } } } },
+}), TypeError);
+\nconsole.log(JSON.stringify({ ok: true, generated: cases.length, arrays: networks.length, objectCases: objectCases.length, shapeCases: shapeCases.length }));
