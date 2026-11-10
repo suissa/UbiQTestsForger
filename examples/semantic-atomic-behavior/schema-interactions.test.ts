@@ -16,7 +16,7 @@ const contract: SemanticContract = {
       example: { kind: "business", taxId: "BR-123" },
       properties: {
         kind: { type: "string", required: true, example: "business" },
-        taxId: { type: "string", required: false, example: "BR-123" },
+        taxId: { type: "string", required: true, example: "BR-123" },
         consumerCode: { type: "string", required: false, example: "C-123" },
         password: { type: "string", required: false, example: "secret" },
         passwordConfirmation: { type: "string", required: false, example: "secret" },
@@ -82,7 +82,7 @@ assert.deepEqual(verifyConstraintCases(contract, generated).failed, []);
 
 const interactions: Array<{ id: string; path: string; value: unknown; expected: "accept" | "reject" }> = [
   { id: "oneOf+if.then+allOf.valid-business", path: "profile", value: { kind: "business", taxId: "BR-123" }, expected: "accept" },
-  { id: "oneOf+if.else+allOf.valid-consumer", path: "profile", value: { kind: "consumer", consumerCode: "C-123" }, expected: "accept" },
+  { id: "oneOf+if.else+allOf.valid-consumer", path: "profile", value: { kind: "consumer", taxId: "BR-123", consumerCode: "C-123" }, expected: "accept" },
   { id: "oneOf+if.then.missing-tax-id", path: "profile", value: { kind: "business" }, expected: "reject" },
   { id: "oneOf+if.else.missing-consumer-code", path: "profile", value: { kind: "consumer" }, expected: "reject" },
   { id: "oneOf+allOf.overlapping-branches", path: "profile", value: { kind: "business", taxId: "BR-123", consumerCode: "C-123" }, expected: "accept" },
