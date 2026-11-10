@@ -16,6 +16,10 @@ export interface PropertyContract {
   properties?: Record<string, PropertyContract>;
   /** Contract for every array element. */
   items?: PropertyContract;
+  /** Inclusive minimum number of array elements. */
+  minItems?: number;
+  /** Inclusive maximum number of array elements. */
+  maxItems?: number;
 }
 export interface SemanticContract { name: string; properties: Record<string, PropertyContract> }
 export interface ConstraintTestCase { id: string; contract: string; path: string; objective: string; input: Record<string, unknown>; expected: "accept" | "reject"; rationale: string }
@@ -35,8 +39,28 @@ function matchesType(value: unknown, type: SemanticPrimitiveType): boolean {
 }
 function isRequired(property: PropertyContract): boolean { return property.required !== false || (property.constraints ?? []).some(c => c.kind === "required"); }
 
+function validArrayBounds(property: PropertyContract): boolean {
+  const { minItems, maxItems } = property;
+  return (minItems === undefined || (Number.isInteger(minItems) && minItems >= 0))
+    && (maxItems === undefined || (Number.isInteger(maxItems) && maxItems >= 0))
+    && (minItems === undefined || maxItems === undefined || minItems <= maxItems);
+}
+function assertValidContract(properties: Record<string, PropertyContract>, prefix = ""): void {
+  for (const [key, property] of Object.entries(properties)) {
+    const path = prefix ? prefix + "." + key : key;
+    if (!validArrayBounds(property)) throw new RangeError("Invalid array cardinality bounds at " + path);
+    if ((property.minItems !== undefined || property.maxItems !== undefined) && property.type !== "array")
+      throw new TypeError("minItems/maxItems require array type at " + path);
+    if (property.properties) assertValidContract(property.properties, path);
+    if (property.items) assertValidContract({ item: property.items }, path + ".0");
+  }
+}
+
 function satisfies(value: unknown, property: PropertyContract): boolean {
   if (!matchesType(value, property.type)) return false;
+  if (property.type === "array" && !validArrayBounds(property)) return false;
+  if (Array.isArray(value) && ((property.minItems !== undefined && value.length < property.minItems)
+    || (property.maxItems !== undefined && value.length > property.maxItems))) return false;
   for (const c of property.constraints ?? []) switch (c.kind) {
     case "required": break;
     case "min": if (typeof value !== "number" || value < c.value) return false; break;
@@ -120,6 +144,7 @@ function valueAtPath(target: Record<string, unknown>, path: string): { exists: b
 
 /** Generates deterministic cases for flat contracts, nested objects, and the first declared array item. */
 export function generateConstraintCases(contract: SemanticContract): ConstraintTestCase[] {
+  assertValidContract(contract.properties);
   const baseline = baselineFor(contract); const cases: ConstraintTestCase[] = [];
   const add = (path: string, objective: string, value: unknown, expected: "accept" | "reject", rationale: string, omit = false) => {
     const input = clone(baseline); if (omit) deleteAtPath(input, path); else setAtPath(input, path, value);
@@ -138,6 +163,24 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
         if (constraint.kind === "max") add(path, "boundary.max", constraint.value, "accept", "Exact maximum is included.");
         if (constraint.kind === "minLength") add(path, "boundary.minLength", "x".repeat(constraint.value), "accept", "Exact minimum length is included.");
         if (constraint.kind === "maxLength") add(path, "boundary.maxLength", "x".repeat(constraint.value), "accept", "Exact maximum length is included.");
+      }
+      if (property.type === "array" && (property.minItems !== undefined || property.maxItems !== undefined)) {
+        const fixture = Array.isArray(property.example) ? clone(property.example) : [];
+        const addCardinality = (objective: string, length: number, expected: "accept" | "reject", rationale: string) => {
+          if (length > 0 && fixture.length === 0) return;
+          const value = Array.from({ length }, (_, index) => clone(fixture[index % fixture.length]));
+          add(path, objective, value, expected, rationale);
+        };
+        const min = property.minItems, max = property.maxItems;
+        addCardinality("array.empty", 0, min === undefined || min === 0 ? "accept" : "reject", "An empty array is valid only when minItems permits zero.");
+        if (min !== undefined && min > 0) {
+          addCardinality("array.minItems.below", min - 1, "reject", "The array is one item below minItems.");
+          addCardinality("array.minItems.boundary", min, "accept", "The exact minItems boundary is inclusive.");
+        }
+        if (max !== undefined) {
+          addCardinality("array.maxItems.boundary", max, "accept", "The exact maxItems boundary is inclusive.");
+          addCardinality("array.maxItems.above", max + 1, "reject", "The array is one item above maxItems.");
+        }
       }
       if (property.properties) visit(property.properties, path);
       if (property.items) visit({ "0": property.items }, path);

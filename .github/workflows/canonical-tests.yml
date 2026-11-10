@@ -21,3 +21,4 @@ jobs:
       - run: npm run test:person
       - run: npm run test:constraints
       - run: npm run test:array-cardinality
+      - run: npm run test:integrated-array-cardinality

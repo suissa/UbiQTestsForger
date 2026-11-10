@@ -16,7 +16,7 @@ The generated test can only use fixture values through \`$ref: values.<name>\` a
 
 Contracts support flat properties, nested object properties using \`properties\`, and array element schemas using \`items\`. Nested case paths use dot notation with numeric indexes (for example, \`address.street\` and \`networks.0.name\`). The first declared array item is used as the deterministic fixture target; its child schema is traversed recursively. The independent oracle validates array types and every element against the declared item contract.
 
-Array cardinality is covered by \`src/array-cardinality.ts\`. It generates empty-array, \`minItems\`, and \`maxItems\` boundary cases, including one-below and one-above rejection cases. Boundary fixtures are built only from declared example items. Invalid bounds (negative/non-integer values or \`minItems > maxItems\`) fail fast with \`RangeError\`. Item-value semantics remain independently checked by the \`items\` contract oracle.
+Array cardinality is part of \`PropertyContract\` through inclusive \`minItems\` and \`maxItems\`. The primary \`generateConstraintCases\` pipeline emits empty-array, lower/upper boundary, and one-below/one-above cases alongside type, presence, nested-property, and item-schema cases. Fixtures use only declared example items. Invalid bounds (negative/non-integer values or \`minItems > maxItems\`) fail fast with \`RangeError\`; declaring cardinality on a non-array property fails with \`TypeError\`. The standalone \`src/array-cardinality.ts\` API remains available for callers that need a focused cardinality generator, while semantic contracts use the unified oracle.
 
 Run the focused conformance tests with:
 
