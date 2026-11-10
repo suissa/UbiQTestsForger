@@ -331,12 +331,12 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
           if (max < Number.MAX_SAFE_INTEGER) {
             const above = clone(objectExample);
             let index = 0;
-            while (Object.keys(above).length <= max) above["extra" + index++] = "extra";
+            while (Object.keys(above).length <= max) above["extra-" + String.fromCharCode(97 + index++ % 26)] = "extra";
             add(path, "object.maxProperties.above", above, "reject",
               "Object key count exceeds the inclusive maximum by one or more keys.");
             const boundary = clone(objectExample);
             index = 0;
-            while (Object.keys(boundary).length < max) boundary["boundary" + index++] = "extra";
+            while (Object.keys(boundary).length < max) boundary["boundary-" + String.fromCharCode(97 + index++ % 26)] = "extra";
             const boundaryExpected = max >= objectKeys.length ? "accept" : "reject";
             add(path, "object.maxProperties.boundary", boundary, boundaryExpected,
               "Object key count is placed at the inclusive maximum boundary.");
