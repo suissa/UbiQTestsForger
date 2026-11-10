@@ -7,7 +7,7 @@ const contract: SemanticContract = {
     networks: {
       type: "array",
       required: true,
-      example: [{ name: "github" }],
+      example: [{ name: "github" }, { name: "gitlab" }],
       minItems: 1,
       maxItems: 3,
       items: {
@@ -39,6 +39,28 @@ assert.deepEqual(networks.map(test => [test.objective, (test.input.networks as u
   ["array.maxItems.above", 4, "reject"],
 ]);
 assert.equal(cases.find(test => test.path === "tags" && test.objective === "array.empty")?.expected, "accept");
+for (const path of ["networks.0.name", "networks.1.name"]) {
+  const mismatch = cases.find(test => test.path === path && test.objective === "type.mismatch");
+  assert.ok(mismatch, "missing item-level case for " + path);
+  assert.equal(mismatch.expected, "reject");
+}
+assert.equal(
+  (cases.find(test => test.path === "networks.1.name" && test.objective === "type.mismatch")!.input.networks as Array<{ name: unknown }>)[1].name,
+  123,
+);
+const noItemFixture = generateConstraintCases({
+  name: "EmptyExample",
+  properties: {
+    values: {
+      type: "array",
+      example: [],
+      minItems: 0,
+      items: { type: "string", required: true, example: "declared" },
+    },
+  },
+});
+assert.equal(noItemFixture.some(test => test.path.startsWith("values.0")), false,
+  "item cases must not be generated without a declared fixture element");
 assert.deepEqual(verifyConstraintCases(contract, cases).failed, []);
 assert.throws(() => generateConstraintCases({
   name: "Invalid",
