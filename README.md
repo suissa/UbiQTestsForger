@@ -57,6 +57,10 @@ Property contracts support `if`, `then`, and `else` on the same value. When `if`
 
 The integrated suite covers matching and non-matching conditions with distinct required object fields, plus invalid conditional declarations.
 
+### Cross-invariant interaction conformance
+
+`npm run test:schema-interactions` validates combinations in a single semantic value, rather than testing each keyword only in isolation. The deterministic interaction matrix covers `oneOf` with `if/then/else` and `allOf`; `dependentRequired` with `dependentSchemas`; `not` with object composition; `patternProperties` with `additionalProperties`; and array `items`, `contains`, `uniqueItems`, and `anyOf`. The matrix is intentionally targeted and bounded: it verifies representative pairwise and multi-keyword interactions, not an exhaustive Cartesian product of every schema declaration.
+
 ## Authentication flow
 
 Web and WhatsApp can initiate the same identity journey.
