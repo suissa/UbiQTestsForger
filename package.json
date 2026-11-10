@@ -16,7 +16,8 @@
     "test:runtime": "node --experimental-strip-types src/runtime-integration.ts",
     "check:runtime": "node --experimental-strip-types src/cli.ts runtime-check examples/2FA-passwordless examples/2FA-passwordless/runtime/runtime.example.json",
     "test:actions": "node --experimental-strip-types examples/2FA-passwordless/implementations/actions/gateway/return_authenticated_result.test.ts && node --experimental-strip-types examples/2FA-passwordless/implementations/actions/web/receive_passkey_route.test.ts && node --experimental-strip-types examples/2FA-passwordless/implementations/actions/login/validate_passkey.test.ts && node --experimental-strip-types examples/2FA-passwordless/implementations/actions/login/receive_passkey.test.ts && node --experimental-strip-types examples/2FA-passwordless/implementations/actions/login/send_magic_link.test.ts",
-    "test:integrated-array-cardinality": "node --experimental-strip-types examples/semantic-atomic-behavior/integrated-array-cardinality.test.ts"
+    "test:integrated-array-cardinality": "node --experimental-strip-types examples/semantic-atomic-behavior/integrated-array-cardinality.test.ts",
+    "test:schema-interactions": "node --experimental-strip-types examples/semantic-atomic-behavior/schema-interactions.test.ts"
   },
   "exports": {
     ".": "./src/index.ts",
