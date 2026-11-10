@@ -69,6 +69,7 @@ function validArrayBounds(property: PropertyContract): boolean {
   const { minItems, maxItems } = property;
   return validCountBounds(minItems, maxItems)
     && validCountBounds(property.minContains, property.maxContains)
+    && (property.maxContains === undefined || (property.minContains ?? 1) <= property.maxContains)
     && ((property.minContains === undefined && property.maxContains === undefined)
       || property.contains !== undefined)
     && (property.uniqueItems === undefined || typeof property.uniqueItems === "boolean");
@@ -238,8 +239,8 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
           const values = Array.from({ length: count }, () => clone(matching));
           add(path, objective, values, expected, rationale);
         };
-        addContains("array.contains.match", Math.max(1, minimum), minimum === 0 ? "accept" : "accept",
-          "The array contains the required number of values matching the contains contract.");
+        addContains("array.contains.match", minimum, "accept",
+          "The array contains the minimum required number of values matching the contains contract.");
         if (minimum > 0) addContains("array.contains.below-minimum", minimum - 1, "reject",
           "The array has fewer matches than minContains.");
         if (property.maxContains !== undefined) {
@@ -248,8 +249,8 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
           addContains("array.contains.above-maximum", property.maxContains + 1, "reject",
             "The array has more matches than maxContains.");
         }
-        add(path, "array.contains.no-match", [mismatch(property.contains.type)], "reject",
-          "No array element matches the contains contract.");
+        add(path, "array.contains.no-match", [mismatch(property.contains.type)], minimum === 0 ? "accept" : "reject",
+          minimum === 0 ? "No match is permitted because minContains is zero." : "No array element matches the contains contract.");
       }
       if (property.properties) visit(property.properties, path);
       if (property.items && Array.isArray(property.example)) {
