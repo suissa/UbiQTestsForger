@@ -210,4 +210,55 @@ assert.throws(() => generateConstraintCases({
   properties: { data: { type: "object", example: {}, patternProperties: { "[": { type: "string", example: "x" } } } },
 }), TypeError);
 
-console.log(JSON.stringify({ ok: true, generated: cases.length, arrays: networks.length, objectCases: objectCases.length, shapeCases: shapeCases.length }));
+const compositionContract: SemanticContract = {
+  name: "LogicalComposition",
+  properties: {
+    bounded: {
+      type: "number", required: true, example: 3,
+      allOf: [
+        { type: "number", example: 3, constraints: [{ kind: "min", value: 1 }] },
+        { type: "number", example: 3, constraints: [{ kind: "max", value: 5 }] },
+      ],
+    },
+    color: {
+      type: "string", required: true, example: "red",
+      anyOf: [
+        { type: "string", example: "red", constraints: [{ kind: "enum", values: ["red"] }] },
+        { type: "string", example: "blue", constraints: [{ kind: "enum", values: ["blue"] }] },
+      ],
+    },
+    exclusiveColor: {
+      type: "string", required: true, example: "red",
+      oneOf: [
+        { type: "string", example: "red", constraints: [{ kind: "enum", values: ["red"] }] },
+        { type: "string", example: "blue", constraints: [{ kind: "enum", values: ["blue"] }] },
+      ],
+    },
+    overlapping: {
+      type: "string", required: true, example: "shared",
+      oneOf: [
+        { type: "string", example: "shared", constraints: [{ kind: "enum", values: ["shared"] }] },
+        { type: "string", example: "shared", constraints: [{ kind: "pattern", value: "^shared$" }] },
+      ],
+    },
+    forbidden: {
+      type: "string", required: true, example: "allowed",
+      not: { type: "string", example: "blocked", constraints: [{ kind: "enum", values: ["blocked"] }] },
+    },
+  },
+};
+const compositionCases = generateConstraintCases(compositionContract);
+assert.equal(compositionCases.find(test => test.path === "bounded" && test.objective === "composition.allOf.valid")?.expected, "accept");
+assert.equal(compositionCases.find(test => test.path === "color" && test.objective === "composition.anyOf.branch.0")?.expected, "accept");
+assert.equal(compositionCases.find(test => test.path === "color" && test.objective === "composition.anyOf.no-match")?.expected, "reject");
+assert.equal(compositionCases.find(test => test.path === "exclusiveColor" && test.objective === "composition.oneOf.branch.0")?.expected, "accept");
+assert.equal(compositionCases.find(test => test.path === "overlapping" && test.objective === "composition.oneOf.branch.0")?.expected, "reject");
+assert.equal(compositionCases.find(test => test.path === "forbidden" && test.objective === "composition.not.blocked")?.expected, "accept");
+assert.deepEqual(verifyConstraintCases(compositionContract, compositionCases).failed, []);
+assert.throws(() => generateConstraintCases({
+  name: "InvalidComposition",
+  properties: { value: { type: "string", example: "x", anyOf: [] } },
+}), TypeError);
+
+console.log(JSON.stringify({ ok: true, generated: cases.length, arrays: networks.length, objectCases: objectCases.length, shapeCases: shapeCases.length, compositionCases: compositionCases.length }));
+
