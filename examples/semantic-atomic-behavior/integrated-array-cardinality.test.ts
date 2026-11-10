@@ -209,4 +209,5 @@ assert.throws(() => generateConstraintCases({
   name: "InvalidObjectPattern",
   properties: { data: { type: "object", example: {}, patternProperties: { "[": { type: "string", example: "x" } } } },
 }), TypeError);
-\nconsole.log(JSON.stringify({ ok: true, generated: cases.length, arrays: networks.length, objectCases: objectCases.length, shapeCases: shapeCases.length }));
+
+console.log(JSON.stringify({ ok: true, generated: cases.length, arrays: networks.length, objectCases: objectCases.length, shapeCases: shapeCases.length }));
