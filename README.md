@@ -2,27 +2,43 @@
 
 Canonical test-skill forge for intent-driven, event-driven web systems.
 
-The executable fixture `examples/2FA-passwordless` models passwordless authentication starting on Web or WhatsApp.
+The executable fixture \`examples/2FA-passwordless\` models passwordless authentication starting on Web or WhatsApp.
 
 Canonical skills: Intent, Trajectory, Behavioral, Acceptance, Unit, Component, Integration, Contract, System, E2E, Smoke, Regression, Performance, Security, Accessibility, Compatibility and Reliability.
 
 Every skill expands across every declared action. The generated matrix is **17 skills x 16 actions = 272 test cases**.
 
-The generated test can only use fixture values through `$ref: values.<name>` and only nominal semantic types declared in the fixture schema. The engine rejects undeclared values/types/references.
+The generated test can only use fixture values through \`$ref: values.<name>\` and only nominal semantic types declared in the fixture schema. The engine rejects undeclared values/types/references.
 
 ## Constraint-driven semantic cases
 
-`src/constraint-cases.ts` generates deterministic cases from semantic contracts: a baseline, type mismatches, missing required properties, violated constraints, and inclusive numeric/string-length boundaries. Cases target one path at a time so failures remain attributable. Valid examples are supplied by the contract; the generator does not invent business fixtures.
+\`src/constraint-cases.ts\` generates deterministic cases from semantic contracts: a baseline, type mismatches, missing required properties, violated constraints, and inclusive numeric/string-length boundaries. Cases target one path at a time so failures remain attributable. Valid examples are supplied by the contract; the generator does not invent business fixtures.
 
-Contracts support flat properties, nested object properties using `properties`, and array element schemas using `items`. Nested case paths use dot notation with numeric indexes (for example, `address.street` and `networks.0.name`). The first declared array item is used as the deterministic fixture target; its child schema is traversed recursively. The independent oracle validates array types and every element against the declared item contract.
+Contracts support flat properties, nested object properties using \`properties\`, and array element schemas using \`items\`. Nested case paths use dot notation with numeric indexes (for example, \`address.street\` and \`networks.0.name\`). Every declared example array item is used as a deterministic fixture target; its child schema is traversed recursively. If the example array is empty, the generator does not invent an item or emit unreachable item-level cases. The independent oracle validates array types and every element against the declared item contract. Array invariants also support `uniqueItems` (deep structural uniqueness) and `contains`, with inclusive `minContains` (default 1) and optional `maxContains`. The generator emits duplicate/distinct cases and matching, below-minimum, maximum, above-maximum, and no-match cases. Invalid invariant combinations fail fast.
 
-Supported constraints: `required`, `min`, `max`, `minLength`, `maxLength`, `pattern`, `enum`, `positive`, and `non_empty`.
+Array cardinality is part of \`PropertyContract\` through inclusive \`minItems\` and \`maxItems\`. The primary \`generateConstraintCases\` pipeline emits empty-array, lower/upper boundary, and one-below/one-above cases alongside type, presence, nested-property, and item-schema cases. Fixtures use only declared example items. Invalid bounds (negative/non-integer values or \`minItems > maxItems\`) fail fast with \`RangeError\`; declaring cardinality on a non-array property fails with \`TypeError\`. The standalone \`src/array-cardinality.ts\` API remains available for callers that need a focused cardinality generator, while semantic contracts use the unified oracle.
 
-Run the focused conformance test with:
+Run the focused conformance tests with:
 
-```bash
+\`\`\`bash
 npm run test:constraints
-```
+npm run test:array-cardinality
+npm run test:integrated-array-cardinality
+\`\`\`
+
+## Object invariants
+
+Object-valued `PropertyContract` schemas support three additional invariants:
+
+- `dependentRequired`: when a trigger key is present, every listed sibling key must also be present. A trigger that is absent does not activate the dependency.
+- `dependentSchemas`: when a trigger key is present, the complete object is validated against the associated object contract; this is not a schema applied only to the trigger value.
+- `additionalProperties`: omitted or `true` permits undeclared keys, `false` rejects them, and a `PropertyContract` validates every undeclared value.
+
+The generator emits satisfied and violated dependency cases, activated-schema cases, and additional-key acceptance/rejection/type cases. The oracle independently evaluates the same object-level rules. Dependency names must be unique non-empty strings, and dependent schema values must be object contracts; invalid declarations fail fast. Additional-property schema cases use the schema's declared example and a deterministic type mismatch. These rules apply recursively to nested object properties and objects inside declared array items.
+
+### Object shape and key validation
+
+Object contracts also support inclusive `minProperties` and `maxProperties`, `propertyNames` for validating every key, and `patternProperties` for applying value contracts to keys matching regular expressions. A key matching one or more patterns is validated by every matching schema and is not treated as an additional property. Only keys matching neither a declared `properties` entry nor a `patternProperties` expression are handled by `additionalProperties`. Invalid bounds and invalid regular expressions fail fast. The integrated suite covers valid and invalid key names, matching-pattern values, and object cardinality.
 
 ## Authentication flow
 
@@ -35,15 +51,15 @@ Web and WhatsApp can initiate the same identity journey.
 5. Send the magic link through Evolution Go.
 6. Wait for the user to present the passkey.
 7. Validate the passkey and session.
-8. Send the authenticated result to `UserGatewayAgent`.
+8. Send the authenticated result to \`UserGatewayAgent\`.
 9. Adapt the result for Web and WhatsApp. The fixture explicitly returns: **“Você acabou de fazer login com a passkey deste WhatsApp.”**
 10. The central chatbot route accepts a WhatsApp message, checks for an active session and, when there is none, generates and sends the magic link directly to that WhatsApp.
 
 ## Semantic Atomic Behavior
 
-`SemanticAtomicBehavior<T, Name>` is the nominal type boundary. `validate()` runs:
+\`SemanticAtomicBehavior<T, Name>\` is the nominal type boundary. \`validate()\` runs:
 
-`unwrap -> primitive extraction -> primitive parser/cast -> sanitization -> normalization -> logical validation`.
+\`unwrap -> primitive extraction -> primitive parser/cast -> sanitization -> normalization -> logical validation\`.
 
 This is the self-healing boundary: wrapped/dirty input is unpacked and normalized before logical validation. Application code consumes the nominal result instead of treating raw strings as trusted identity data.
 
@@ -51,12 +67,13 @@ This is the self-healing boundary: wrapped/dirty input is unpacked and normalize
 
 No runtime dependencies are required.
 
-```bash
+\`\`\`bash
 npm test
 npm run check
 npm run check:runtime
 npm run test:constraints
-```
+npm run test:array-cardinality
+\`\`\`
 
 The YAML files are JSON-subset YAML 1.2 so they remain dependency-free under Node 24.
 
@@ -66,14 +83,38 @@ Trajectory verification can execute against a real HTTP or WebSocket runtime. Ru
 
 Use the supplied template as a starting point:
 
-```bash
+\`\`\`bash
 cp examples/2FA-passwordless/runtime/runtime.example.json /tmp/ubiq-runtime.json
-```
+\`\`\`
 
-Set `UBIQ_RUNTIME_BASE_URL` in the environment and run:
+Set \`UBIQ_RUNTIME_BASE_URL\` in the environment and run:
 
-```bash
+\`\`\`bash
 node --experimental-strip-types src/cli.ts trajectory examples/2FA-passwordless /tmp/ubiq-runtime.json
-```
+\`\`\`
 
-The adapter is fail-closed: a missing binding, missing environment variable, timeout, transport failure, connection closure, or unexpected HTTP status produces explicit runtime evidence and cannot be reported as a satisfied trajectory. WebSocket bindings also honor `receive.messages`, allowing the runtime contract to require one or multiple received messages.
+The adapter is fail-closed: a missing binding, missing environment variable, timeout, transport failure, connection closure, or unexpected HTTP status produces explicit runtime evidence and cannot be reported as a satisfied trajectory. WebSocket bindings also honor \`receive.messages\`, allowing the runtime contract to require one or multiple received messages.
+
+HTTP and WebSocket credentials are redacted from evidence. The in-memory adapter remains the deterministic test double and is never silently selected when an external runtime configuration is supplied.
+
+### RuntimeConformance
+
+The canonical runtime gate now exercises the transport boundary as a conformance contract rather than only a happy-path fixture.
+
+\`npm run test:runtime\` validates:
+
+- HTTP success against the canonical trajectory;
+- unexpected HTTP status;
+- HTTP timeout;
+- missing HTTP binding;
+- failed HTTP actions do not mutate runtime state or return output;
+- WebSocket success with \`open -> send -> receive\` evidence;
+- WebSocket multi-message reception through \`receive.messages\`;
+- WebSocket close before a required message;
+- WebSocket close before opening;
+- WebSocket transport failure;
+- explicit error evidence on failed transport operations.
+
+The conformance fixture is local and dependency-free. It does not silently fall back to the in-memory adapter. The matrix is executable, not descriptive-only. Each canonical conformance ID is registered in \`src/runtime-conformance.ts\`, and \`test:runtime\` marks every case as it executes it. The gate fails if a declared case is unknown, duplicated, or not executed, preventing the contract from drifting away from its implementation.
+
+\`runtime-check\` performs a fail-closed preflight of the external runtime contract: required trajectory bindings, protocol, URL, method, status, timeout and WebSocket message-count semantics are validated before any network call. Extra bindings are rejected so the runtime manifest cannot silently diverge from the declared trajectory.
