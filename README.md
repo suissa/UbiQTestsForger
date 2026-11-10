@@ -40,6 +40,17 @@ The generator emits satisfied and violated dependency cases, activated-schema ca
 
 Object contracts also support inclusive `minProperties` and `maxProperties`, `propertyNames` for validating every key, and `patternProperties` for applying value contracts to keys matching regular expressions. A key matching one or more patterns is validated by every matching schema and is not treated as an additional property. Only keys matching neither a declared `properties` entry nor a `patternProperties` expression are handled by `additionalProperties`. Invalid bounds and invalid regular expressions fail fast. The integrated suite covers valid and invalid key names, matching-pattern values, and object cardinality.
 
+### Logical schema composition
+
+Property contracts support JSON-Schema-style logical composition on the same value:
+
+- `allOf`: every listed subschema must match.
+- `anyOf`: at least one listed subschema must match.
+- `oneOf`: exactly one listed subschema must match; overlapping matches are rejected.
+- `not`: the value must not match the listed subschema.
+
+Composition is recursive and can be combined with the existing scalar, array, and object invariants. Empty `allOf`, `anyOf`, or `oneOf` declarations are rejected during contract validation. The integrated suite covers accepted and rejected branches, no-match cases, overlapping `oneOf` branches, and `not` exclusions.
+
 ## Authentication flow
 
 Web and WhatsApp can initiate the same identity journey.
