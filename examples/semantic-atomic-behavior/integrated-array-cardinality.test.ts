@@ -189,7 +189,7 @@ const shapeContract: SemanticContract = {
       patternProperties: {
         "^x-": { type: "string", example: "critical" },
       },
-      additionalProperties: false,
+      additionalProperties: true,
     },
   },
 };
