@@ -14,7 +14,7 @@ The generated test can only use fixture values through \`$ref: values.<name>\` a
 
 \`src/constraint-cases.ts\` generates deterministic cases from semantic contracts: a baseline, type mismatches, missing required properties, violated constraints, and inclusive numeric/string-length boundaries. Cases target one path at a time so failures remain attributable. Valid examples are supplied by the contract; the generator does not invent business fixtures.
 
-Contracts support flat properties, nested object properties using \`properties\`, and array element schemas using \`items\`. Nested case paths use dot notation with numeric indexes (for example, \`address.street\` and \`networks.0.name\`). Every declared example array item is used as a deterministic fixture target; its child schema is traversed recursively. If the example array is empty, the generator does not invent an item or emit unreachable item-level cases. The independent oracle validates array types and every element against the declared item contract.
+Contracts support flat properties, nested object properties using \`properties\`, and array element schemas using \`items\`. Nested case paths use dot notation with numeric indexes (for example, \`address.street\` and \`networks.0.name\`). Every declared example array item is used as a deterministic fixture target; its child schema is traversed recursively. If the example array is empty, the generator does not invent an item or emit unreachable item-level cases. The independent oracle validates array types and every element against the declared item contract. Array invariants also support `uniqueItems` (deep structural uniqueness) and `contains`, with inclusive `minContains` (default 1) and optional `maxContains`. The generator emits duplicate/distinct cases and matching, below-minimum, maximum, above-maximum, and no-match cases. Invalid invariant combinations fail fast.
 
 Array cardinality is part of \`PropertyContract\` through inclusive \`minItems\` and \`maxItems\`. The primary \`generateConstraintCases\` pipeline emits empty-array, lower/upper boundary, and one-below/one-above cases alongside type, presence, nested-property, and item-schema cases. Fixtures use only declared example items. Invalid bounds (negative/non-integer values or \`minItems > maxItems\`) fail fast with \`RangeError\`; declaring cardinality on a non-array property fails with \`TypeError\`. The standalone \`src/array-cardinality.ts\` API remains available for callers that need a focused cardinality generator, while semantic contracts use the unified oracle.
 
@@ -23,6 +23,7 @@ Run the focused conformance tests with:
 \`\`\`bash
 npm run test:constraints
 npm run test:array-cardinality
+npm run test:integrated-array-cardinality
 \`\`\`
 
 ## Authentication flow
