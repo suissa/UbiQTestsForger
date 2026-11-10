@@ -328,12 +328,18 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
           const min = property.minProperties ?? 0, max = property.maxProperties ?? Number.MAX_SAFE_INTEGER;
           add(path, "object.minProperties.boundary", Object.fromEntries(objectKeys.slice(0, min).map(key => [key, clone(objectExample[key])])), min <= objectKeys.length ? "accept" : "reject",
             "Object key count at the declared minimum boundary.");
-          add(path, "object.maxProperties.above", withExtra(objectExample, "__count_extra", "extra"), objectKeys.length + 1 > max ? "reject" : "accept",
-            "Object key count after adding one undeclared key.");
           if (max < Number.MAX_SAFE_INTEGER) {
-            const trimmed = Object.fromEntries(objectKeys.slice(0, max + 1).map(key => [key, clone(objectExample[key])]));
-            add(path, "object.maxProperties.boundary", trimmed, Object.keys(trimmed).length <= max ? "accept" : "reject",
-              "Object key count at or beyond the declared maximum boundary.");
+            const above = clone(objectExample);
+            let index = 0;
+            while (Object.keys(above).length <= max) above["extra" + index++] = "extra";
+            add(path, "object.maxProperties.above", above, "reject",
+              "Object key count exceeds the inclusive maximum by one or more keys.");
+            const boundary = clone(objectExample);
+            index = 0;
+            while (Object.keys(boundary).length < max) boundary["boundary" + index++] = "extra";
+            const boundaryExpected = max >= objectKeys.length ? "accept" : "reject";
+            add(path, "object.maxProperties.boundary", boundary, boundaryExpected,
+              "Object key count is placed at the inclusive maximum boundary.");
           }
         }
         if (property.propertyNames) {
