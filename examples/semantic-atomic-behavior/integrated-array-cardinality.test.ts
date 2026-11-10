@@ -235,7 +235,7 @@ const compositionContract: SemanticContract = {
       ],
     },
     overlapping: {
-      type: "string", required: true, example: "shared",
+      type: "string", required: false, example: "shared",
       oneOf: [
         { type: "string", example: "shared", constraints: [{ kind: "enum", values: ["shared"] }] },
         { type: "string", example: "shared", constraints: [{ kind: "pattern", value: "^shared$" }] },
