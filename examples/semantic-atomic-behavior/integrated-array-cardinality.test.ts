@@ -270,7 +270,7 @@ const conditionalContract: SemanticContract = {
       example: { kind: "business", taxId: "BR-123" },
       properties: {
         kind: { type: "string", required: true, example: "business" },
-        taxId: { type: "string", required: false, example: "BR-123" },
+        taxId: { type: "string", required: true, example: "BR-123" },
         consumerCode: { type: "string", required: false, example: "C-123" },
       },
       if: {
@@ -292,7 +292,7 @@ const conditionalContract: SemanticContract = {
       properties: {
         kind: { type: "string", required: true, example: "consumer" },
         taxId: { type: "string", required: false, example: "BR-123" },
-        consumerCode: { type: "string", required: false, example: "C-123" },
+        consumerCode: { type: "string", required: true, example: "C-123" },
       },
       if: {
         type: "object", example: { kind: "business" },
