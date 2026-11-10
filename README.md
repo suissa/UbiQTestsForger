@@ -36,6 +36,10 @@ Object-valued `PropertyContract` schemas support three additional invariants:
 
 The generator emits satisfied and violated dependency cases, activated-schema cases, and additional-key acceptance/rejection/type cases. The oracle independently evaluates the same object-level rules. Dependency names must be unique non-empty strings, and dependent schema values must be object contracts; invalid declarations fail fast. Additional-property schema cases use the schema's declared example and a deterministic type mismatch. These rules apply recursively to nested object properties and objects inside declared array items.
 
+### Object shape and key validation
+
+Object contracts also support inclusive `minProperties` and `maxProperties`, `propertyNames` for validating every key, and `patternProperties` for applying value contracts to keys matching regular expressions. A key matching one or more patterns is validated by every matching schema and is not treated as an additional property. Only keys matching neither a declared `properties` entry nor a `patternProperties` expression are handled by `additionalProperties`. Invalid bounds and invalid regular expressions fail fast. The integrated suite covers valid and invalid key names, matching-pattern values, and object cardinality.
+
 ## Authentication flow
 
 Web and WhatsApp can initiate the same identity journey.

@@ -34,6 +34,13 @@ export interface PropertyContract {
   dependentSchemas?: Record<string, PropertyContract>;
   /** Policy for undeclared object keys; omitted means allowed. */
   additionalProperties?: boolean | PropertyContract;
+  /** Inclusive bounds for the number of keys in an object. */
+  minProperties?: number;
+  maxProperties?: number;
+  /** Contract applied to every property name. */
+  propertyNames?: PropertyContract;
+  /** Contracts applied to keys matching each regular expression. */
+  patternProperties?: Record<string, PropertyContract>;
 }
 export interface SemanticContract { name: string; properties: Record<string, PropertyContract> }
 export interface ConstraintTestCase { id: string; contract: string; path: string; objective: string; input: Record<string, unknown>; expected: "accept" | "reject"; rationale: string }
@@ -84,6 +91,18 @@ function assertValidContract(properties: Record<string, PropertyContract>, prefi
   for (const [key, property] of Object.entries(properties)) {
     const path = prefix ? prefix + "." + key : key;
     if (!validArrayBounds(property)) throw new RangeError("Invalid array cardinality bounds at " + path);
+    if (!validCountBounds(property.minProperties, property.maxProperties))
+      throw new RangeError("Invalid object property-count bounds at " + path);
+    if ((property.minProperties !== undefined || property.maxProperties !== undefined
+      || property.propertyNames !== undefined || property.patternProperties !== undefined)
+      && property.type !== "object") throw new TypeError("Object invariants require object type at " + path);
+    if (property.propertyNames) assertValidContract({ propertyName: property.propertyNames }, path + ".propertyNames");
+    if (property.patternProperties) {
+      for (const [pattern, schema] of Object.entries(property.patternProperties)) {
+        try { new RegExp(pattern); } catch { throw new TypeError("Invalid patternProperties expression at " + path + "." + pattern); }
+        assertValidContract({ patternValue: schema }, path + ".patternProperties");
+      }
+    }
     if ((property.minItems !== undefined || property.maxItems !== undefined || property.uniqueItems !== undefined
       || property.contains !== undefined || property.minContains !== undefined || property.maxContains !== undefined)
       && property.type !== "array")
@@ -140,12 +159,23 @@ function satisfies(value: unknown, property: PropertyContract): boolean {
       if (!Object.hasOwn(value, key)) { if (isRequired(child)) return false; continue; }
       if (!satisfies(value[key], child)) return false;
     }
+    const keys = Object.keys(value);
+    if ((property.minProperties !== undefined && keys.length < property.minProperties)
+      || (property.maxProperties !== undefined && keys.length > property.maxProperties)) return false;
     const known = new Set(Object.keys(property.properties));
-    for (const [key, extra] of Object.entries(value)) {
-      if (known.has(key)) continue;
+    for (const key of keys) {
+      if (property.propertyNames && !satisfies(key, property.propertyNames)) return false;
+      let matchedPattern = false;
+      for (const [pattern, schema] of Object.entries(property.patternProperties ?? {})) {
+        if (new RegExp(pattern).test(key)) {
+          matchedPattern = true;
+          if (!satisfies(value[key], schema)) return false;
+        }
+      }
+      if (known.has(key) || matchedPattern) continue;
       if (property.additionalProperties === false) return false;
       if (property.additionalProperties && typeof property.additionalProperties === "object"
-        && !satisfies(extra, property.additionalProperties)) return false;
+        && !satisfies(value[key], property.additionalProperties)) return false;
     }
     for (const [trigger, dependencies] of Object.entries(property.dependentRequired ?? [])) {
       if (Object.hasOwn(value, trigger) && dependencies.some(name => !Object.hasOwn(value, name))) return false;
@@ -293,6 +323,40 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
         const known = new Set(Object.keys(property.properties));
         const extras = (isObject(property.example) ? Object.keys(property.example) : []).filter(key => !known.has(key));
         const withExtra = (value: Record<string, unknown>, key: string, extra: unknown) => ({ ...clone(value), [key]: clone(extra) });
+        const objectKeys = Object.keys(objectExample);
+        if (property.minProperties !== undefined || property.maxProperties !== undefined) {
+          const min = property.minProperties ?? 0, max = property.maxProperties ?? Number.MAX_SAFE_INTEGER;
+          add(path, "object.minProperties.boundary", Object.fromEntries(objectKeys.slice(0, min).map(key => [key, clone(objectExample[key])])), min <= objectKeys.length ? "accept" : "reject",
+            "Object key count at the declared minimum boundary.");
+          if (max < Number.MAX_SAFE_INTEGER) {
+            const above = clone(objectExample);
+            let index = 0;
+            while (Object.keys(above).length <= max) above["extra-" + String.fromCharCode(97 + index++ % 26)] = "extra";
+            add(path, "object.maxProperties.above", above, "reject",
+              "Object key count exceeds the inclusive maximum by one or more keys.");
+            const boundary = clone(objectExample);
+            index = 0;
+            while (Object.keys(boundary).length < max) boundary["boundary-" + String.fromCharCode(97 + index++ % 26)] = "extra";
+            const boundaryExpected = max >= objectKeys.length ? "accept" : "reject";
+            add(path, "object.maxProperties.boundary", boundary, boundaryExpected,
+              "Object key count is placed at the inclusive maximum boundary.");
+          }
+        }
+        if (property.propertyNames) {
+          const key = "__invalid_property_name__";
+          add(path, "object.propertyNames.valid", withExtra(objectExample, String(property.propertyNames.example), "extra"), "accept",
+            "A declared property-name example is used as an object key.");
+          add(path, "object.propertyNames.invalid", withExtra(objectExample, key, "extra"), "reject",
+            "A key that violates the propertyNames contract is rejected.");
+        }
+        for (const [pattern, schema] of Object.entries(property.patternProperties ?? {})) {
+          const sampleKey = Object.keys(property.example as object ?? {}).find(candidate => new RegExp(pattern).test(candidate))
+            ?? (pattern.includes("^") && pattern.includes("[a-z") ? "a" : "x");
+          add(path, "object.patternProperties.valid." + pattern, withExtra(objectExample, sampleKey, clone(schema.example)), "accept",
+            "A matching key has a value satisfying its pattern schema.");
+          add(path, "object.patternProperties.invalid." + pattern, withExtra(objectExample, sampleKey, mismatch(schema.type)), "reject",
+            "A matching key has a value violating its pattern schema.");
+        }
         if (property.additionalProperties === false) {
           const key = "__undeclared";
           add(path, "object.additionalProperties.forbidden", withExtra(objectExample, key, "extra"), "reject",
@@ -304,7 +368,7 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
           add(path, "object.additionalProperties.type-mismatch", withExtra(objectExample, key, mismatch(property.additionalProperties.type)), "reject",
             "An undeclared key must satisfy the additionalProperties schema.");
         } else if (property.additionalProperties === true) {
-          add(path, "object.additionalProperties.allowed", withExtra(objectExample, "__undeclared", "extra"), "accept",
+          add(path, "object.additionalProperties.allowed", withExtra(objectExample, "extra-key", "extra"), "accept",
             "Undeclared keys are explicitly allowed.");
         }
         for (const [trigger, dependencies] of Object.entries(property.dependentRequired ?? {})) {
@@ -344,7 +408,7 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
   visit(contract.properties); return cases;
 }
 
-/** Independent oracle for declared constraints, object dependencies/additional keys, and array invariants. */
+/** Independent oracle for scalar, array, and structural object invariants. */
 export function evaluateConstraintCase(contract: SemanticContract, test: ConstraintTestCase): boolean {
   if (test.path === "$") return Object.entries(contract.properties).every(([path, property]) => { const found = valueAtPath(test.input, path); if (!found.exists) return !isRequired(property); return satisfies(found.value, property); });
   const property = propertyAt(contract, test.path); if (!property) return false;
