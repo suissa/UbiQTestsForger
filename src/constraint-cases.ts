@@ -20,6 +20,14 @@ export interface PropertyContract {
   minItems?: number;
   /** Inclusive maximum number of array elements. */
   maxItems?: number;
+  /** Require all array elements to be deeply distinct. */
+  uniqueItems?: boolean;
+  /** Subcontract matched by a configurable number of array elements. */
+  contains?: PropertyContract;
+  /** Inclusive minimum number of elements matching contains (defaults to 1). */
+  minContains?: number;
+  /** Inclusive maximum number of elements matching contains. */
+  maxContains?: number;
 }
 export interface SemanticContract { name: string; properties: Record<string, PropertyContract> }
 export interface ConstraintTestCase { id: string; contract: string; path: string; objective: string; input: Record<string, unknown>; expected: "accept" | "reject"; rationale: string }
@@ -39,18 +47,41 @@ function matchesType(value: unknown, type: SemanticPrimitiveType): boolean {
 }
 function isRequired(property: PropertyContract): boolean { return property.required !== false || (property.constraints ?? []).some(c => c.kind === "required"); }
 
+function validCountBounds(min: number | undefined, max: number | undefined): boolean {
+  return (min === undefined || (Number.isInteger(min) && min >= 0))
+    && (max === undefined || (Number.isInteger(max) && max >= 0))
+    && (min === undefined || max === undefined || min <= max);
+}
+function deepEqual(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) return true;
+  if (Array.isArray(a) || Array.isArray(b)) {
+    return Array.isArray(a) && Array.isArray(b) && a.length === b.length
+      && a.every((value, index) => deepEqual(value, b[index]));
+  }
+  if (isObject(a) || isObject(b)) {
+    if (!isObject(a) || !isObject(b)) return false;
+    const ak = Object.keys(a).sort(), bk = Object.keys(b).sort();
+    return ak.length === bk.length && ak.every((key, index) => key === bk[index] && deepEqual(a[key], b[key]));
+  }
+  return false;
+}
 function validArrayBounds(property: PropertyContract): boolean {
   const { minItems, maxItems } = property;
-  return (minItems === undefined || (Number.isInteger(minItems) && minItems >= 0))
-    && (maxItems === undefined || (Number.isInteger(maxItems) && maxItems >= 0))
-    && (minItems === undefined || maxItems === undefined || minItems <= maxItems);
+  return validCountBounds(minItems, maxItems)
+    && validCountBounds(property.minContains, property.maxContains)
+    && ((property.minContains === undefined && property.maxContains === undefined)
+      || property.contains !== undefined)
+    && (property.uniqueItems === undefined || typeof property.uniqueItems === "boolean");
 }
 function assertValidContract(properties: Record<string, PropertyContract>, prefix = ""): void {
   for (const [key, property] of Object.entries(properties)) {
     const path = prefix ? prefix + "." + key : key;
     if (!validArrayBounds(property)) throw new RangeError("Invalid array cardinality bounds at " + path);
-    if ((property.minItems !== undefined || property.maxItems !== undefined) && property.type !== "array")
-      throw new TypeError("minItems/maxItems require array type at " + path);
+    if ((property.minItems !== undefined || property.maxItems !== undefined || property.uniqueItems !== undefined
+      || property.contains !== undefined || property.minContains !== undefined || property.maxContains !== undefined)
+      && property.type !== "array")
+      throw new TypeError("Array invariants require array type at " + path);
+    if (property.contains) assertValidContract({ contains: property.contains }, path + ".contains");
     if (property.properties) assertValidContract(property.properties, path);
     if (property.items) assertValidContract({ item: property.items }, path + ".0");
   }
@@ -59,8 +90,16 @@ function assertValidContract(properties: Record<string, PropertyContract>, prefi
 function satisfies(value: unknown, property: PropertyContract): boolean {
   if (!matchesType(value, property.type)) return false;
   if (property.type === "array" && !validArrayBounds(property)) return false;
-  if (Array.isArray(value) && ((property.minItems !== undefined && value.length < property.minItems)
-    || (property.maxItems !== undefined && value.length > property.maxItems))) return false;
+  if (Array.isArray(value)) {
+    if ((property.minItems !== undefined && value.length < property.minItems)
+      || (property.maxItems !== undefined && value.length > property.maxItems)) return false;
+    if (property.uniqueItems && value.some((item, index) => value.slice(0, index).some(previous => deepEqual(previous, item)))) return false;
+    if (property.contains) {
+      const matches = value.filter(item => satisfies(item, property.contains!)).length;
+      const minimum = property.minContains ?? 1;
+      if (matches < minimum || (property.maxContains !== undefined && matches > property.maxContains)) return false;
+    }
+  }
   for (const c of property.constraints ?? []) switch (c.kind) {
     case "required": break;
     case "min": if (typeof value !== "number" || value < c.value) return false; break;
@@ -142,7 +181,7 @@ function valueAtPath(target: Record<string, unknown>, path: string): { exists: b
   return { exists: true, value: current };
 }
 
-/** Generates deterministic cases for flat contracts, nested objects, and the first declared array item. */
+/** Generates deterministic cases for flat contracts, nested objects, and every declared array item. */
 export function generateConstraintCases(contract: SemanticContract): ConstraintTestCase[] {
   assertValidContract(contract.properties);
   const baseline = baselineFor(contract); const cases: ConstraintTestCase[] = [];
@@ -182,6 +221,36 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
           addCardinality("array.maxItems.above", max + 1, "reject", "The array is one item above maxItems.");
         }
       }
+      if (property.type === "array" && property.uniqueItems !== undefined && Array.isArray(property.example) && property.example.length > 0) {
+        const first = clone(property.example[0]);
+        const duplicate = [first, clone(first)];
+        add(path, "array.uniqueItems.duplicate", duplicate, property.uniqueItems ? "reject" : "accept",
+          property.uniqueItems ? "Deeply duplicated elements violate uniqueItems." : "Duplicate elements are permitted when uniqueItems is false.");
+        if (property.uniqueItems) {
+          const distinct = property.example.length > 1 ? [clone(property.example[0]), clone(property.example[1])] : [first];
+          add(path, "array.uniqueItems.distinct", distinct, "accept", "An array without duplicate elements satisfies uniqueItems.");
+        }
+      }
+      if (property.type === "array" && property.contains) {
+        const minimum = property.minContains ?? 1;
+        const matching = clone(property.contains.example);
+        const addContains = (objective: string, count: number, expected: "accept" | "reject", rationale: string) => {
+          const values = Array.from({ length: count }, () => clone(matching));
+          add(path, objective, values, expected, rationale);
+        };
+        addContains("array.contains.match", Math.max(1, minimum), minimum === 0 ? "accept" : "accept",
+          "The array contains the required number of values matching the contains contract.");
+        if (minimum > 0) addContains("array.contains.below-minimum", minimum - 1, "reject",
+          "The array has fewer matches than minContains.");
+        if (property.maxContains !== undefined) {
+          addContains("array.contains.maximum", property.maxContains, "accept",
+            "The number of matching values is at the inclusive maxContains boundary.");
+          addContains("array.contains.above-maximum", property.maxContains + 1, "reject",
+            "The array has more matches than maxContains.");
+        }
+        add(path, "array.contains.no-match", [mismatch(property.contains.type)], "reject",
+          "No array element matches the contains contract.");
+      }
       if (property.properties) visit(property.properties, path);
       if (property.items && Array.isArray(property.example)) {
         // Exercise every declared fixture element; never synthesize an item when no example exists.
@@ -195,7 +264,7 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
   visit(contract.properties); return cases;
 }
 
-/** Independent oracle for declared constraints, nested object properties, and array item schemas. */
+/** Independent oracle for declared constraints, nested object properties, and array item schemas and array invariants. */
 export function evaluateConstraintCase(contract: SemanticContract, test: ConstraintTestCase): boolean {
   if (test.path === "$") return Object.entries(contract.properties).every(([path, property]) => { const found = valueAtPath(test.input, path); if (!found.exists) return !isRequired(property); return satisfies(found.value, property); });
   const property = propertyAt(contract, test.path); if (!property) return false;
