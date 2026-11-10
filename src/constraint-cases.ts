@@ -291,7 +291,7 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
         visit(property.properties, path);
         const objectExample = exampleFor(property) as Record<string, unknown>;
         const known = new Set(Object.keys(property.properties));
-        const extras = Object.keys(property.example as object).filter(key => !known.has(key));
+        const extras = (isObject(property.example) ? Object.keys(property.example) : []).filter(key => !known.has(key));
         const withExtra = (value: Record<string, unknown>, key: string, extra: unknown) => ({ ...clone(value), [key]: clone(extra) });
         if (property.additionalProperties === false) {
           const key = "__undeclared";
