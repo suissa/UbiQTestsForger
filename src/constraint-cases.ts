@@ -249,7 +249,7 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
           addContains("array.contains.above-maximum", property.maxContains + 1, "reject",
             "The array has more matches than maxContains.");
         }
-        add(path, "array.contains.no-match", [mismatch(property.contains.type)], minimum === 0 ? "accept" : "reject",
+        add(path, "array.contains.no-match", minimum === 0 ? [] : [mismatch(property.contains.type)], minimum === 0 ? "accept" : "reject",
           minimum === 0 ? "No match is permitted because minContains is zero." : "No array element matches the contains contract.");
       }
       if (property.properties) visit(property.properties, path);
