@@ -254,6 +254,7 @@ assert.equal(compositionCases.find(test => test.path === "color" && test.objecti
 assert.equal(compositionCases.find(test => test.path === "exclusiveColor" && test.objective === "composition.oneOf.branch.0")?.expected, "accept");
 assert.equal(compositionCases.find(test => test.path === "overlapping" && test.objective === "composition.oneOf.branch.0")?.expected, "reject");
 assert.equal(compositionCases.find(test => test.path === "forbidden" && test.objective === "composition.not.blocked")?.expected, "accept");
+assert.equal(compositionCases.find(test => test.path === "forbidden" && test.objective === "composition.not.excluded")?.expected, "reject");
 assert.deepEqual(verifyConstraintCases(compositionContract, compositionCases).failed, []);
 assert.throws(() => generateConstraintCases({
   name: "InvalidComposition",
