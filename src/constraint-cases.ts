@@ -28,6 +28,12 @@ export interface PropertyContract {
   minContains?: number;
   /** Inclusive maximum number of elements matching contains. */
   maxContains?: number;
+  /** When a trigger property exists, all listed sibling properties are required. */
+  dependentRequired?: Record<string, string[]>;
+  /** When a trigger property exists, the complete object must satisfy this object contract. */
+  dependentSchemas?: Record<string, PropertyContract>;
+  /** Policy for undeclared object keys; omitted means allowed. */
+  additionalProperties?: boolean | PropertyContract;
 }
 export interface SemanticContract { name: string; properties: Record<string, PropertyContract> }
 export interface ConstraintTestCase { id: string; contract: string; path: string; objective: string; input: Record<string, unknown>; expected: "accept" | "reject"; rationale: string }
@@ -84,6 +90,22 @@ function assertValidContract(properties: Record<string, PropertyContract>, prefi
       throw new TypeError("Array invariants require array type at " + path);
     if (property.contains) assertValidContract({ contains: property.contains }, path + ".contains");
     if (property.properties) assertValidContract(property.properties, path);
+    if (property.dependentRequired) {
+      for (const [trigger, dependencies] of Object.entries(property.dependentRequired)) {
+        if (!Array.isArray(dependencies) || dependencies.some(name => typeof name !== "string" || !name)
+          || new Set(dependencies).size !== dependencies.length)
+          throw new TypeError("dependentRequired entries must be unique non-empty property names at " + path + "." + trigger);
+      }
+    }
+    if (property.dependentSchemas) {
+      for (const [trigger, schema] of Object.entries(property.dependentSchemas)) {
+        if (schema.type !== "object") throw new TypeError("dependentSchemas values must be object contracts at " + path + "." + trigger);
+        assertValidContract({ [trigger]: schema }, path + ".dependentSchemas");
+      }
+    }
+    if (property.additionalProperties !== undefined && typeof property.additionalProperties !== "boolean") {
+      assertValidContract({ additional: property.additionalProperties }, path + ".additionalProperties");
+    }
     if (property.items) assertValidContract({ item: property.items }, path + ".0");
   }
 }
@@ -117,6 +139,19 @@ function satisfies(value: unknown, property: PropertyContract): boolean {
     for (const [key, child] of Object.entries(property.properties)) {
       if (!Object.hasOwn(value, key)) { if (isRequired(child)) return false; continue; }
       if (!satisfies(value[key], child)) return false;
+    }
+    const known = new Set(Object.keys(property.properties));
+    for (const [key, extra] of Object.entries(value)) {
+      if (known.has(key)) continue;
+      if (property.additionalProperties === false) return false;
+      if (property.additionalProperties && typeof property.additionalProperties === "object"
+        && !satisfies(extra, property.additionalProperties)) return false;
+    }
+    for (const [trigger, dependencies] of Object.entries(property.dependentRequired ?? [])) {
+      if (Object.hasOwn(value, trigger) && dependencies.some(name => !Object.hasOwn(value, name))) return false;
+    }
+    for (const [trigger, schema] of Object.entries(property.dependentSchemas ?? [])) {
+      if (Object.hasOwn(value, trigger) && !satisfies(value, schema)) return false;
     }
   }
   if (property.items) {
@@ -252,7 +287,51 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
         add(path, "array.contains.no-match", minimum === 0 ? [] : [mismatch(property.contains.type)], minimum === 0 ? "accept" : "reject",
           minimum === 0 ? "No match is permitted because minContains is zero." : "No array element matches the contains contract.");
       }
-      if (property.properties) visit(property.properties, path);
+      if (property.properties) {
+        visit(property.properties, path);
+        const objectExample = exampleFor(property) as Record<string, unknown>;
+        const known = new Set(Object.keys(property.properties));
+        const extras = (isObject(property.example) ? Object.keys(property.example) : []).filter(key => !known.has(key));
+        const withExtra = (value: Record<string, unknown>, key: string, extra: unknown) => ({ ...clone(value), [key]: clone(extra) });
+        if (property.additionalProperties === false) {
+          const key = "__undeclared";
+          add(path, "object.additionalProperties.forbidden", withExtra(objectExample, key, "extra"), "reject",
+            "Undeclared keys are forbidden by additionalProperties=false.");
+        } else if (property.additionalProperties && typeof property.additionalProperties === "object") {
+          const key = "__declared_extra";
+          add(path, "object.additionalProperties.valid", withExtra(objectExample, key, clone(property.additionalProperties.example)), "accept",
+            "An undeclared key satisfies the additionalProperties schema.");
+          add(path, "object.additionalProperties.type-mismatch", withExtra(objectExample, key, mismatch(property.additionalProperties.type)), "reject",
+            "An undeclared key must satisfy the additionalProperties schema.");
+        } else if (property.additionalProperties === true) {
+          add(path, "object.additionalProperties.allowed", withExtra(objectExample, "__undeclared", "extra"), "accept",
+            "Undeclared keys are explicitly allowed.");
+        }
+        for (const [trigger, dependencies] of Object.entries(property.dependentRequired ?? {})) {
+          const activated = { ...clone(objectExample), [trigger]: clone(property.properties[trigger]?.example ?? "trigger") };
+          for (const dependency of dependencies) activated[dependency] = clone(property.properties[dependency]?.example ?? "dependency");
+          add(path, "object.dependentRequired.satisfied." + trigger, activated, "accept",
+            "All dependent properties are present when the trigger exists.");
+          if (dependencies.length > 0) {
+            const missing = { ...activated }; delete missing[dependencies[0]];
+            add(path, "object.dependentRequired.missing." + trigger, missing, "reject",
+              "A triggered dependency is absent.");
+          }
+        }
+        for (const [trigger, schema] of Object.entries(property.dependentSchemas ?? {})) {
+          const activated = { ...clone(objectExample), [trigger]: clone(property.properties[trigger]?.example ?? "trigger") };
+          const validDependent = exampleFor(schema) as Record<string, unknown>;
+          const merged = { ...activated, ...validDependent };
+          add(path, "object.dependentSchemas.valid." + trigger, merged, "accept",
+            "The complete object satisfies the activated dependent schema.");
+          const requiredKey = Object.entries(schema.properties ?? {}).find(([, child]) => isRequired(child))?.[0];
+          if (requiredKey) {
+            const invalid = { ...merged }; delete invalid[requiredKey];
+            add(path, "object.dependentSchemas.invalid." + trigger, invalid, "reject",
+              "The activated dependent schema rejects an object missing a required field.");
+          }
+        }
+      }
       if (property.items && Array.isArray(property.example)) {
         // Exercise every declared fixture element; never synthesize an item when no example exists.
         const itemContracts = Object.fromEntries(
@@ -265,7 +344,7 @@ export function generateConstraintCases(contract: SemanticContract): ConstraintT
   visit(contract.properties); return cases;
 }
 
-/** Independent oracle for declared constraints, nested object properties, and array item schemas and array invariants. */
+/** Independent oracle for declared constraints, object dependencies/additional keys, and array invariants. */
 export function evaluateConstraintCase(contract: SemanticContract, test: ConstraintTestCase): boolean {
   if (test.path === "$") return Object.entries(contract.properties).every(([path, property]) => { const found = valueAtPath(test.input, path); if (!found.exists) return !isRequired(property); return satisfies(found.value, property); });
   const property = propertyAt(contract, test.path); if (!property) return false;

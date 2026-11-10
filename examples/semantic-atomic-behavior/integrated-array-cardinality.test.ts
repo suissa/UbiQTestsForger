@@ -107,4 +107,66 @@ assert.throws(() => generateConstraintCases({
   properties: { value: { type: "string", example: "x", minItems: 1 } },
 }), TypeError);
 
-console.log(JSON.stringify({ ok: true, generated: cases.length, arrays: networks.length }));
+
+const objectContract: SemanticContract = {
+  name: "ObjectRules",
+  properties: {
+    account: {
+      type: "object",
+      required: true,
+      example: { username: "suissa" },
+      properties: {
+        username: { type: "string", required: true, example: "suissa" },
+        password: { type: "string", required: false, example: "secret" },
+        passwordConfirmation: { type: "string", required: false, example: "secret" },
+        mode: { type: "string", required: false, example: "managed" },
+        approvalCode: { type: "string", required: false, example: "approved" },
+      },
+      dependentRequired: { password: ["passwordConfirmation"] },
+      dependentSchemas: {
+        mode: {
+          type: "object",
+          example: { approvalCode: "approved" },
+          properties: {
+            approvalCode: { type: "string", required: true, example: "approved" },
+          },
+        },
+      },
+      additionalProperties: false,
+    },
+    metadata: {
+      type: "object",
+      required: true,
+      example: { source: "api" },
+      properties: { source: { type: "string", required: true, example: "api" } },
+      additionalProperties: { type: "string", required: true, example: "extra" },
+    },
+    extensible: {
+      type: "object",
+      required: true,
+      example: { source: "api" },
+      properties: { source: { type: "string", required: true, example: "api" } },
+      additionalProperties: true,
+    },
+  },
+};
+const objectCases = generateConstraintCases(objectContract);
+assert.equal(objectCases.find(test => test.path === "account" && test.objective === "object.dependentRequired.missing.password")?.expected, "reject");
+assert.equal(objectCases.find(test => test.path === "account" && test.objective === "object.dependentRequired.satisfied.password")?.expected, "accept");
+assert.equal(objectCases.find(test => test.path === "account" && test.objective === "object.dependentSchemas.invalid.mode")?.expected, "reject");
+assert.equal(objectCases.find(test => test.path === "account" && test.objective === "object.dependentSchemas.valid.mode")?.expected, "accept");
+assert.equal(objectCases.find(test => test.path === "account" && test.objective === "object.additionalProperties.forbidden")?.expected, "reject");
+assert.equal(objectCases.find(test => test.path === "metadata" && test.objective === "object.additionalProperties.valid")?.expected, "accept");
+assert.equal(objectCases.find(test => test.path === "metadata" && test.objective === "object.additionalProperties.type-mismatch")?.expected, "reject");
+assert.equal(objectCases.find(test => test.path === "extensible" && test.objective === "object.additionalProperties.allowed")?.expected, "accept");
+assert.deepEqual(verifyConstraintCases(objectContract, objectCases).failed, []);
+assert.throws(() => generateConstraintCases({
+  name: "InvalidDependentSchema",
+  properties: { account: {
+    type: "object", example: {}, dependentSchemas: {
+      enabled: { type: "string", example: "invalid" },
+    },
+  } },
+}), TypeError);
+
+console.log(JSON.stringify({ ok: true, generated: cases.length, arrays: networks.length, objectCases: objectCases.length }));

@@ -26,6 +26,16 @@ npm run test:array-cardinality
 npm run test:integrated-array-cardinality
 \`\`\`
 
+## Object invariants
+
+Object-valued `PropertyContract` schemas support three additional invariants:
+
+- `dependentRequired`: when a trigger key is present, every listed sibling key must also be present. A trigger that is absent does not activate the dependency.
+- `dependentSchemas`: when a trigger key is present, the complete object is validated against the associated object contract; this is not a schema applied only to the trigger value.
+- `additionalProperties`: omitted or `true` permits undeclared keys, `false` rejects them, and a `PropertyContract` validates every undeclared value.
+
+The generator emits satisfied and violated dependency cases, activated-schema cases, and additional-key acceptance/rejection/type cases. The oracle independently evaluates the same object-level rules. Dependency names must be unique non-empty strings, and dependent schema values must be object contracts; invalid declarations fail fast. Additional-property schema cases use the schema's declared example and a deterministic type mismatch. These rules apply recursively to nested object properties and objects inside declared array items.
+
 ## Authentication flow
 
 Web and WhatsApp can initiate the same identity journey.
